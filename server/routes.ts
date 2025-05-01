@@ -6,8 +6,11 @@ import {
   insertCampaignSchema, 
   insertSubmissionSchema, 
   viewUpdateSchema,
+  insertPrivateInvitationSchema,
+  insertPrivateSubmissionSchema,
   type Campaign, 
-  type User 
+  type User,
+  type PrivateInvitation
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -310,6 +313,265 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Private Invitation routes
+  app.get("/api/private-invitations", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as User;
+      let invitations;
+      
+      if (user.role === "restaurant") {
+        invitations = await storage.getPrivateInvitationsByRestaurantId(user.id);
+      } else {
+        invitations = await storage.getPrivateInvitationsByInfluencerId(user.id);
+      }
+      
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching private invitations:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.get("/api/private-invitations/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const invitationId = Number(req.params.id);
+      const invitation = await storage.getPrivateInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      // Only allow access to users who are part of this invitation
+      if (invitation.restaurantId !== user.id && invitation.influencerId !== user.id) {
+        return res.status(403).send("Forbidden: You do not have access to this invitation");
+      }
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error fetching private invitation:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.get("/api/private-invitations/code/:code", requireAuth, async (req, res) => {
+    try {
+      const inviteCode = req.params.code;
+      const invitation = await storage.getPrivateInvitationByCode(inviteCode);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error("Error fetching private invitation by code:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.post("/api/private-invitations", requireRestaurantRole, async (req, res) => {
+    try {
+      const user = req.user as User;
+      
+      const invitationData = insertPrivateInvitationSchema.parse({
+        ...req.body,
+        restaurantId: user.id,
+        status: "pending"
+      });
+      
+      const invitation = await storage.createPrivateInvitation(invitationData);
+      res.status(201).json(invitation);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Validation Error",
+          details: fromZodError(error).message,
+          fieldErrors: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+      console.error("Error creating private invitation:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.put("/api/private-invitations/:id/status", requireInfluencerRole, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const invitationId = Number(req.params.id);
+      const invitation = await storage.getPrivateInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      // Only the invited influencer can update the status
+      if (invitation.influencerId !== user.id) {
+        return res.status(403).send("Forbidden: You can only respond to invitations sent to you");
+      }
+      
+      // Only allow status to be updated to accepted or declined from pending
+      const { status } = req.body;
+      if (!status || !["accepted", "declined"].includes(status)) {
+        return res.status(400).send("Invalid status. Must be 'accepted' or 'declined'");
+      }
+      
+      if (invitation.status !== "pending") {
+        return res.status(400).send("Cannot update invitation that is not pending");
+      }
+      
+      const updatedInvitation = await storage.updatePrivateInvitation(invitationId, { status });
+      res.json(updatedInvitation);
+    } catch (error) {
+      console.error("Error updating private invitation status:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.post("/api/private-invitations/:id/submissions", requireInfluencerRole, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const invitationId = Number(req.params.id);
+      const invitation = await storage.getPrivateInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      // Only the invited influencer can submit content
+      if (invitation.influencerId !== user.id) {
+        return res.status(403).send("Forbidden: You can only submit content to invitations sent to you");
+      }
+      
+      // Only allow submissions to accepted invitations
+      if (invitation.status !== "accepted") {
+        return res.status(400).send("Cannot submit to invitations that are not accepted");
+      }
+      
+      const submissionData = insertPrivateSubmissionSchema.parse({
+        ...req.body,
+        invitationId,
+        status: "pending"
+      });
+      
+      const submission = await storage.createPrivateSubmission(submissionData);
+      
+      // Update invitation status to completed
+      await storage.updatePrivateInvitation(invitationId, { status: "completed" });
+      
+      res.status(201).json(submission);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Validation Error",
+          details: fromZodError(error).message,
+          fieldErrors: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+      console.error("Error creating private submission:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.get("/api/private-invitations/:id/submissions", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const invitationId = Number(req.params.id);
+      const invitation = await storage.getPrivateInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      // Only allow access to users who are part of this invitation
+      if (invitation.restaurantId !== user.id && invitation.influencerId !== user.id) {
+        return res.status(403).send("Forbidden: You do not have access to this invitation");
+      }
+      
+      const submissions = await storage.getPrivateSubmissionsByInvitationId(invitationId);
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching private submissions:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.put("/api/private-submissions/:id/status", requireRestaurantRole, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const submissionId = Number(req.params.id);
+      const submission = await storage.getPrivateSubmission(submissionId);
+      
+      if (!submission) {
+        return res.status(404).send("Private submission not found");
+      }
+      
+      // Get the associated invitation to verify restaurant ownership
+      const invitation = await storage.getPrivateInvitation(submission.invitationId);
+      
+      if (!invitation || invitation.restaurantId !== user.id) {
+        return res.status(403).send("Forbidden: You can only update submissions for your own invitations");
+      }
+      
+      const { status } = req.body;
+      if (!status || !["pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).send("Invalid status");
+      }
+      
+      const updatedSubmission = await storage.updatePrivateSubmission(submissionId, { status });
+      res.json(updatedSubmission);
+    } catch (error) {
+      console.error("Error updating private submission status:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.put("/api/private-submissions/:id/views", requireAuth, async (req, res) => {
+    try {
+      const submissionId = Number(req.params.id);
+      const submission = await storage.getPrivateSubmission(submissionId);
+      
+      if (!submission) {
+        return res.status(404).send("Private submission not found");
+      }
+      
+      const { views } = viewUpdateSchema.parse(req.body);
+      
+      // Only process view updates for approved submissions
+      if (submission.status !== "approved") {
+        return res.status(400).send("Cannot update views for submissions that are not approved");
+      }
+      
+      // Get invitation to calculate earnings
+      const invitation = await storage.getPrivateInvitation(submission.invitationId);
+      if (!invitation) {
+        return res.status(404).send("Associated invitation not found");
+      }
+      
+      // Calculate earnings based on views and invitation reward rule
+      const earnings = (views / invitation.rewardViews) * invitation.rewardAmount;
+      
+      const updatedSubmission = await storage.updatePrivateSubmission(submissionId, { 
+        views, 
+        earnings
+      });
+      
+      res.json(updatedSubmission);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).send(fromZodError(error).message);
+      }
+      console.error("Error updating private submission views:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
   // Statistics routes
   app.get("/api/stats", requireAuth, async (req, res) => {
     try {
@@ -319,16 +581,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Restaurant statistics
         const campaigns = await storage.getCampaignsByRestaurantId(user.id);
         const submissions = await storage.getSubmissionsByRestaurantId(user.id);
+        const privateInvitations = await storage.getPrivateInvitationsByRestaurantId(user.id);
+        
+        // Get all private submissions
+        let privateSubmissions = [];
+        for (const invitation of privateInvitations) {
+          const subs = await storage.getPrivateSubmissionsByInvitationId(invitation.id);
+          privateSubmissions.push(...subs);
+        }
         
         const activeCampaigns = campaigns.filter(c => c.status === "active").length;
-        const totalSubmissions = submissions.length;
-        const approvedSubmissions = submissions.filter(s => s.status === "approved").length;
-        const totalViews = submissions.reduce((sum, s) => sum + s.views, 0);
-        const totalSpent = submissions.reduce((sum, s) => sum + s.earnings, 0);
+        const totalSubmissions = submissions.length + privateSubmissions.length;
+        const approvedSubmissions = 
+          submissions.filter(s => s.status === "approved").length + 
+          privateSubmissions.filter(s => s.status === "approved").length;
+        
+        const totalViews = 
+          submissions.reduce((sum, s) => sum + s.views, 0) + 
+          privateSubmissions.reduce((sum, s) => sum + s.views, 0);
+        
+        const totalSpent = 
+          submissions.reduce((sum, s) => sum + s.earnings, 0) + 
+          privateSubmissions.reduce((sum, s) => sum + s.earnings, 0);
         
         res.json({
           activeCampaigns,
           totalCampaigns: campaigns.length,
+          totalPrivateInvitations: privateInvitations.length,
           totalSubmissions,
           approvedSubmissions,
           totalViews,
@@ -337,22 +616,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Influencer statistics
         const submissions = await storage.getSubmissionsByInfluencerId(user.id);
+        const privateInvitations = await storage.getPrivateInvitationsByInfluencerId(user.id);
         
-        const activeSubmissions = submissions.filter(s => s.status === "approved").length;
-        const pendingSubmissions = submissions.filter(s => s.status === "pending").length;
-        const totalViews = submissions.reduce((sum, s) => sum + s.views, 0);
-        const totalEarnings = submissions.reduce((sum, s) => sum + s.earnings, 0);
+        // Get all private submissions
+        let privateSubmissions = [];
+        for (const invitation of privateInvitations) {
+          const subs = await storage.getPrivateSubmissionsByInvitationId(invitation.id);
+          privateSubmissions.push(...subs);
+        }
+        
+        const activeSubmissions = 
+          submissions.filter(s => s.status === "approved").length + 
+          privateSubmissions.filter(s => s.status === "approved").length;
+        
+        const pendingSubmissions = 
+          submissions.filter(s => s.status === "pending").length + 
+          privateSubmissions.filter(s => s.status === "pending").length;
+        
+        const totalViews = 
+          submissions.reduce((sum, s) => sum + s.views, 0) + 
+          privateSubmissions.reduce((sum, s) => sum + s.views, 0);
+        
+        const totalEarnings = 
+          submissions.reduce((sum, s) => sum + s.earnings, 0) + 
+          privateSubmissions.reduce((sum, s) => sum + s.earnings, 0);
         
         res.json({
-          totalSubmissions: submissions.length,
+          totalSubmissions: submissions.length + privateSubmissions.length,
           activeSubmissions,
           pendingSubmissions,
+          pendingInvitations: privateInvitations.filter(i => i.status === "pending").length,
+          totalPrivateInvitations: privateInvitations.length,
           totalViews,
           totalEarnings
         });
       }
     } catch (error) {
       console.error("Error fetching statistics:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  // Users routes
+  app.get("/api/users/influencers", requireRestaurantRole, async (req, res) => {
+    try {
+      // Get all users with influencer role
+      const allUsers = Array.from((storage as any).users.values());
+      const influencers = allUsers.filter(user => user.role === "influencer");
+      
+      // Return only the necessary information
+      const influencerData = influencers.map(influencer => ({
+        id: influencer.id,
+        name: influencer.name,
+        email: influencer.email
+      }));
+      
+      res.json(influencerData);
+    } catch (error) {
+      console.error("Error fetching influencers:", error);
       return res.status(500).send("Internal server error");
     }
   });

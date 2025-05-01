@@ -6,6 +6,7 @@ import { users, type User, type InsertUser,
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import crypto from "crypto";
 
 const MemoryStore = createMemoryStore(session);
 
