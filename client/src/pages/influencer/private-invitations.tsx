@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { PrivateInvitationCard } from "@/components/private-invitation-card";
 import { type PrivateInvitation } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function InfluencerPrivateInvitations() {
   const { user } = useAuth();
@@ -37,6 +39,15 @@ export default function InfluencerPrivateInvitations() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-4">
+        <Link href="/influencer/dashboard">
+          <Button variant="ghost" className="flex items-center gap-2 mb-2">
+            <ArrowLeft size={16} />
+            <span>Back to Dashboard</span>
+          </Button>
+        </Link>
+      </div>
+      
       <Header 
         title="Private Invitations" 
         description="Exclusive campaign opportunities sent directly to you"

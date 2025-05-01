@@ -3,13 +3,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 import { PrivateInvitationModal } from "@/components/private-invitation-modal";
 import { PrivateInvitationCard } from "@/components/private-invitation-card";
 import { type PrivateInvitation } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 export default function RestaurantPrivateInvitations() {
   const { user } = useAuth();
@@ -56,6 +57,15 @@ export default function RestaurantPrivateInvitations() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-4">
+        <Link href="/restaurant/dashboard">
+          <Button variant="ghost" className="flex items-center gap-2 mb-2">
+            <ArrowLeft size={16} />
+            <span>Back to Dashboard</span>
+          </Button>
+        </Link>
+      </div>
+      
       <div className="flex justify-between items-center mb-6">
         <Header 
           title="Private Invitations" 
