@@ -26,5 +26,6 @@ export default function HomePage() {
     );
   }
 
-  return null;
+  // Return an empty div to satisfy the type requirement for React element
+  return <div className="hidden"></div>;
 }
