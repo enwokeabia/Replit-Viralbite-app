@@ -134,7 +134,11 @@ export function CampaignCreateModal({
                   <FormLabel>Campaign Image URL</FormLabel>
                   <FormControl>
                     <div className="grid gap-2">
-                      <Input placeholder="https://example.com/image.jpg" {...field} />
+                      <Input 
+                        placeholder="https://example.com/image.jpg" 
+                        onChange={(e) => field.onChange(e.target.value)}
+                        value={field.value}
+                      />
                       {field.value && (
                         <div className="w-full h-32 rounded-md border overflow-hidden">
                           <img
@@ -142,10 +146,15 @@ export function CampaignCreateModal({
                             alt="Campaign preview"
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.currentTarget.src = "";
-                              e.currentTarget.classList.add("flex", "items-center", "justify-center", "bg-muted");
-                              e.currentTarget.parentElement?.classList.add("flex", "items-center", "justify-center", "bg-muted");
-                              field.onChange("");
+                              // Just hide the broken image but don't reset the field value
+                              e.currentTarget.style.display = "none";
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.classList.add("flex", "items-center", "justify-center", "bg-muted");
+                                const errorMsg = document.createElement("div");
+                                errorMsg.className = "text-sm text-muted-foreground p-2 text-center";
+                                errorMsg.textContent = "Image failed to load";
+                                e.currentTarget.parentElement.appendChild(errorMsg);
+                              }
                             }}
                           />
                         </div>
