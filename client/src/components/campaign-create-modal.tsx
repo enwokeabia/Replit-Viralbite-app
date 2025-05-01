@@ -40,6 +40,8 @@ const formSchema = insertCampaignSchema
         (url) => url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:image/"),
         "URL must be a valid image URL or uploaded file"
       ),
+    maxPayoutPerInfluencer: z.coerce.number().min(1, "Max payout must be at least $1").optional(),
+    maxBudget: z.coerce.number().min(1, "Budget must be at least $1").optional(),
   });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -72,14 +74,23 @@ export function CampaignCreateModal({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      title: "",
-      description: "",
-      imageUrl: "",
-      rewardAmount: 10,
-      rewardViews: 1000,
-      status: "active",
-    },
+    defaultValues: initialData 
+      ? {
+        ...initialData,
+        // Convert nulls to undefined to match our form schema
+        maxPayoutPerInfluencer: initialData.maxPayoutPerInfluencer || undefined,
+        maxBudget: initialData.maxBudget || undefined,
+      } 
+      : {
+        title: "",
+        description: "",
+        imageUrl: "",
+        rewardAmount: 10,
+        rewardViews: 1000,
+        maxPayoutPerInfluencer: 100,
+        maxBudget: undefined,
+        status: "active",
+      },
   });
   
   // Handle file upload with compression for large images
