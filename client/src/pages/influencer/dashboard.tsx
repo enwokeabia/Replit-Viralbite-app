@@ -117,7 +117,7 @@ export default function InfluencerDashboard() {
                       <CardDescription>Best performing submissions based on views</CardDescription>
                     </div>
                     <Link href="/influencer/stats">
-                      <Button variant="ghost" className="text-sm text-accent hover:text-accent/90">
+                      <Button variant="default" size="sm" className="text-sm">
                         View all
                       </Button>
                     </Link>
@@ -174,7 +174,7 @@ export default function InfluencerDashboard() {
                       <CardDescription>Campaigns that match your profile</CardDescription>
                     </div>
                     <Link href="/influencer/browse">
-                      <Button variant="ghost" className="text-sm text-accent hover:text-accent/90">
+                      <Button variant="default" size="sm" className="text-sm">
                         View all
                       </Button>
                     </Link>
@@ -207,7 +207,7 @@ export default function InfluencerDashboard() {
                               </div>
                             </div>
                             <Link href={`/influencer/browse?highlight=${campaign.id}`}>
-                              <Button size="sm" className="bg-accent text-white hover:bg-accent/90">
+                              <Button variant="default" size="sm">
                                 Apply
                               </Button>
                             </Link>

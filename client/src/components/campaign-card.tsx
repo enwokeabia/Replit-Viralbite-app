@@ -153,6 +153,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
               </div>
             ) : (
               <Button
+                variant="default"
                 size="sm"
                 onClick={() => setShowApplyModal(true)}
                 disabled={campaign.status !== "active"}
