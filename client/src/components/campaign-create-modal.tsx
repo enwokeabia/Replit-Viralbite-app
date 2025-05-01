@@ -82,7 +82,7 @@ export function CampaignCreateModal({
     },
   });
   
-  // Handle file upload
+  // Handle file upload with compression for large images
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,24 +97,59 @@ export function CampaignCreateModal({
       return;
     }
     
-    // Check file size (max 5MB)
+    // For very large files, show a warning but proceed
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "File too large",
-        description: "Please upload an image smaller than 5MB",
-        variant: "destructive",
+        title: "Large image detected",
+        description: "The image will be compressed to reduce size",
       });
-      return;
     }
     
-    // Create a data URL for the image
+    // Create a data URL for the image with possible compression
     const reader = new FileReader();
     reader.onloadend = () => {
       const result = reader.result as string;
-      setUploadedImage(result);
       
-      // Set the URL for the form
-      form.setValue("imageUrl", result);
+      // For large images, we'll compress them using the canvas
+      if (file.size > 1024 * 1024) { // Compress if over 1MB
+        const img = new Image();
+        img.onload = () => {
+          // Create canvas for compression
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions (max 1200px width or height)
+          const maxDimension = 1200;
+          if (width > height && width > maxDimension) {
+            height = Math.round(height * (maxDimension / width));
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = Math.round(width * (maxDimension / height));
+            height = maxDimension;
+          }
+          
+          // Set canvas dimensions and draw resized image
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Get compressed data URL (adjust quality as needed)
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            setUploadedImage(compressedDataUrl);
+            
+            // Set the URL for the form
+            form.setValue("imageUrl", compressedDataUrl);
+          }
+        };
+        img.src = result;
+      } else {
+        // Small images don't need compression
+        setUploadedImage(result);
+        form.setValue("imageUrl", result);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -239,7 +274,7 @@ export function CampaignCreateModal({
                                   Click to upload image
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  JPG, PNG, GIF up to 5MB
+                                  JPG, PNG, GIF (larger images will be compressed)
                                 </p>
                               </div>
                             </label>
