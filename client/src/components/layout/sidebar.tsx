@@ -78,6 +78,16 @@ export function Sidebar({ className }: SidebarProps) {
           label: "Earnings",
           icon: <Wallet size={18} />,
         },
+        {
+          path: "/influencer/profile",
+          label: "Profile",
+          icon: <User size={18} />,
+        },
+        {
+          path: "/influencer/settings",
+          label: "Settings",
+          icon: <Settings size={18} />,
+        },
       ];
 
   const handleLogout = () => {

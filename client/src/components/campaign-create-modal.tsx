@@ -364,6 +364,9 @@ export function CampaignCreateModal({
                         value={field.value}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Amount paid per view milestone
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -384,6 +387,59 @@ export function CampaignCreateModal({
                         value={field.value}
                       />
                     </FormControl>
+                    <FormDescription>
+                      View count to reach for reward
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="maxPayoutPerInfluencer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Payout Per Influencer ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        step={0.1}
+                        placeholder="100"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Maximum amount one influencer can earn
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="maxBudget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Budget ($) <span className="text-muted-foreground text-sm">(Optional)</span></FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        step={0.1}
+                        placeholder="1000"
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Total campaign budget limit
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

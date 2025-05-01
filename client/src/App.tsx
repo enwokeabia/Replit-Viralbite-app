@@ -14,6 +14,8 @@ import InfluencerDashboard from "@/pages/influencer/dashboard";
 import BrowseCampaigns from "@/pages/influencer/browse";
 import MyStats from "@/pages/influencer/my-stats";
 import Earnings from "@/pages/influencer/earnings";
+import Profile from "@/pages/influencer/profile";
+import Settings from "@/pages/influencer/settings";
 
 // Restaurant pages
 import RestaurantDashboard from "@/pages/restaurant/dashboard";
@@ -38,6 +40,8 @@ function Router() {
       <ProtectedRoute path="/influencer/browse" component={BrowseCampaigns} />
       <ProtectedRoute path="/influencer/stats" component={MyStats} />
       <ProtectedRoute path="/influencer/earnings" component={Earnings} />
+      <ProtectedRoute path="/influencer/profile" component={Profile} />
+      <ProtectedRoute path="/influencer/settings" component={Settings} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
