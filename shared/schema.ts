@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, doublePrecision } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, doublePrecision, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -82,3 +82,50 @@ export const viewUpdateSchema = z.object({
 });
 
 export type ViewUpdate = z.infer<typeof viewUpdateSchema>;
+
+// Private Invitation schema for one-off collaborations
+export const privateInvitations = pgTable("private_invitations", {
+  id: serial("id").primaryKey(),
+  inviteCode: uuid("invite_code").defaultRandom().notNull().unique(),
+  restaurantId: integer("restaurant_id").notNull().references(() => users.id),
+  influencerId: integer("influencer_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url"),
+  rewardAmount: doublePrecision("reward_amount").notNull(),
+  rewardViews: integer("reward_views").notNull(),
+  status: text("status", { enum: ["pending", "accepted", "declined", "completed"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"),
+});
+
+export const insertPrivateInvitationSchema = createInsertSchema(privateInvitations).omit({
+  id: true,
+  inviteCode: true,
+  createdAt: true,
+});
+
+export type InsertPrivateInvitation = z.infer<typeof insertPrivateInvitationSchema>;
+export type PrivateInvitation = typeof privateInvitations.$inferSelect;
+
+// Private Submission schema for private invitation submissions
+export const privateSubmissions = pgTable("private_submissions", {
+  id: serial("id").primaryKey(),
+  invitationId: integer("invitation_id").notNull().references(() => privateInvitations.id),
+  instagramUrl: text("instagram_url").notNull(),
+  notes: text("notes"),
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull(),
+  views: integer("views").default(0).notNull(),
+  earnings: doublePrecision("earnings").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPrivateSubmissionSchema = createInsertSchema(privateSubmissions).omit({
+  id: true,
+  views: true,
+  earnings: true,
+  createdAt: true,
+});
+
+export type InsertPrivateSubmission = z.infer<typeof insertPrivateSubmissionSchema>;
+export type PrivateSubmission = typeof privateSubmissions.$inferSelect;

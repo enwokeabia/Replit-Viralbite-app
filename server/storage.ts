@@ -1,4 +1,9 @@
-import { users, type User, type InsertUser, campaigns, type Campaign, type InsertCampaign, submissions, type Submission, type InsertSubmission } from "@shared/schema";
+import { users, type User, type InsertUser, 
+  campaigns, type Campaign, type InsertCampaign, 
+  submissions, type Submission, type InsertSubmission,
+  privateInvitations, type PrivateInvitation, type InsertPrivateInvitation,
+  privateSubmissions, type PrivateSubmission, type InsertPrivateSubmission
+} from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -29,26 +34,48 @@ export interface IStorage {
   createSubmission(submission: InsertSubmission): Promise<Submission>;
   updateSubmission(id: number, submission: Partial<Submission>): Promise<Submission | undefined>;
   
+  // Private Invitation methods
+  getPrivateInvitation(id: number): Promise<PrivateInvitation | undefined>;
+  getPrivateInvitationByCode(inviteCode: string): Promise<PrivateInvitation | undefined>;
+  getPrivateInvitationsByRestaurantId(restaurantId: number): Promise<PrivateInvitation[]>;
+  getPrivateInvitationsByInfluencerId(influencerId: number): Promise<PrivateInvitation[]>;
+  createPrivateInvitation(invitation: InsertPrivateInvitation): Promise<PrivateInvitation>;
+  updatePrivateInvitation(id: number, invitation: Partial<PrivateInvitation>): Promise<PrivateInvitation | undefined>;
+  
+  // Private Submission methods
+  getPrivateSubmission(id: number): Promise<PrivateSubmission | undefined>;
+  getPrivateSubmissionsByInvitationId(invitationId: number): Promise<PrivateSubmission[]>;
+  createPrivateSubmission(submission: InsertPrivateSubmission): Promise<PrivateSubmission>;
+  updatePrivateSubmission(id: number, submission: Partial<PrivateSubmission>): Promise<PrivateSubmission | undefined>;
+  
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private campaigns: Map<number, Campaign>;
   private submissions: Map<number, Submission>;
+  private privateInvitations: Map<number, PrivateInvitation>;
+  private privateSubmissions: Map<number, PrivateSubmission>;
   private userIdCounter: number;
   private campaignIdCounter: number;
   private submissionIdCounter: number;
-  sessionStore: session.SessionStore;
+  private privateInvitationIdCounter: number;
+  private privateSubmissionIdCounter: number;
+  sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
     this.campaigns = new Map();
     this.submissions = new Map();
+    this.privateInvitations = new Map();
+    this.privateSubmissions = new Map();
     this.userIdCounter = 1;
     this.campaignIdCounter = 1;
     this.submissionIdCounter = 1;
+    this.privateInvitationIdCounter = 1;
+    this.privateSubmissionIdCounter = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
@@ -167,6 +194,87 @@ export class MemStorage implements IStorage {
     
     const updatedSubmission = { ...submission, ...submissionUpdate };
     this.submissions.set(id, updatedSubmission);
+    return updatedSubmission;
+  }
+
+  // Private Invitation methods
+  async getPrivateInvitation(id: number): Promise<PrivateInvitation | undefined> {
+    return this.privateInvitations.get(id);
+  }
+
+  async getPrivateInvitationByCode(inviteCode: string): Promise<PrivateInvitation | undefined> {
+    return Array.from(this.privateInvitations.values()).find(
+      (invitation) => invitation.inviteCode === inviteCode
+    );
+  }
+
+  async getPrivateInvitationsByRestaurantId(restaurantId: number): Promise<PrivateInvitation[]> {
+    return Array.from(this.privateInvitations.values())
+      .filter((invitation) => invitation.restaurantId === restaurantId);
+  }
+
+  async getPrivateInvitationsByInfluencerId(influencerId: number): Promise<PrivateInvitation[]> {
+    return Array.from(this.privateInvitations.values())
+      .filter((invitation) => invitation.influencerId === influencerId);
+  }
+
+  async createPrivateInvitation(insertInvitation: InsertPrivateInvitation): Promise<PrivateInvitation> {
+    const id = this.privateInvitationIdCounter++;
+    const createdAt = new Date();
+    const inviteCode = crypto.randomUUID();
+    
+    const invitation: PrivateInvitation = {
+      ...insertInvitation,
+      id,
+      inviteCode,
+      createdAt,
+    };
+    
+    this.privateInvitations.set(id, invitation);
+    return invitation;
+  }
+
+  async updatePrivateInvitation(id: number, invitationUpdate: Partial<PrivateInvitation>): Promise<PrivateInvitation | undefined> {
+    const invitation = this.privateInvitations.get(id);
+    if (!invitation) return undefined;
+    
+    const updatedInvitation = { ...invitation, ...invitationUpdate };
+    this.privateInvitations.set(id, updatedInvitation);
+    return updatedInvitation;
+  }
+
+  // Private Submission methods
+  async getPrivateSubmission(id: number): Promise<PrivateSubmission | undefined> {
+    return this.privateSubmissions.get(id);
+  }
+
+  async getPrivateSubmissionsByInvitationId(invitationId: number): Promise<PrivateSubmission[]> {
+    return Array.from(this.privateSubmissions.values())
+      .filter((submission) => submission.invitationId === invitationId);
+  }
+
+  async createPrivateSubmission(insertSubmission: InsertPrivateSubmission): Promise<PrivateSubmission> {
+    const id = this.privateSubmissionIdCounter++;
+    const createdAt = new Date();
+    
+    const submission: PrivateSubmission = {
+      ...insertSubmission,
+      id,
+      views: 0,
+      earnings: 0,
+      createdAt,
+    };
+    
+    this.privateSubmissions.set(id, submission);
+    return submission;
+  }
+
+  async updatePrivateSubmission(id: number, submissionUpdate: Partial<PrivateSubmission>): Promise<PrivateSubmission | undefined> {
+    const submission = this.privateSubmissions.get(id);
+    if (!submission) return undefined;
+    
+    const updatedSubmission = { ...submission, ...submissionUpdate };
+    this.privateSubmissions.set(id, updatedSubmission);
     return updatedSubmission;
   }
 }
