@@ -75,9 +75,9 @@ export default function AuthPage() {
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         <div className="bg-white p-8 rounded-lg shadow-lg">
           <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-primary">SustainConnect</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-purple-500 text-transparent bg-clip-text">ViralBite</h1>
             <p className="text-muted-foreground">
-              Restaurant-Influencer Marketing Platform
+              Performance-Based Restaurant-Influencer Marketing
             </p>
           </div>
 
@@ -268,7 +268,7 @@ export default function AuthPage() {
           )}
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-primary to-accent text-white hidden md:block">
+        <Card className="p-8 bg-gradient-to-br from-purple-800 to-purple-600 text-white hidden md:block">
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">Amplify Your Restaurant's Impact</h2>
             <p className="text-lg opacity-90">
