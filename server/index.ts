@@ -55,6 +55,7 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     serveStatic(app);
+    log("Running in production mode");
   }
 
   // ALWAYS serve the app on port 5000
