@@ -33,8 +33,8 @@ const formSchema = insertCampaignSchema.extend({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   imageUrl: z.string().url("Please enter a valid image URL"),
-  rewardAmount: z.number().min(1, "Amount must be at least $1"),
-  rewardViews: z.number().min(100, "Views must be at least 100"),
+  rewardAmount: z.coerce.number().min(1, "Amount must be at least $1"),
+  rewardViews: z.coerce.number().min(100, "Views must be at least 100"),
   status: z.enum(["draft", "active", "ended"], {
     required_error: "Please select a status",
   }),
@@ -71,16 +71,21 @@ export function CampaignCreateModal({
 
   const onSubmit = async (data: FormValues) => {
     try {
+      console.log("Submitting form with data:", data);
       setIsSubmitting(true);
 
       if (isEditing) {
-        await apiRequest("PUT", `/api/campaigns/${initialData.id}`, data);
+        console.log("Updating campaign", initialData.id);
+        const response = await apiRequest("PUT", `/api/campaigns/${initialData.id}`, data);
+        console.log("Update response:", response);
         toast({
           title: "Campaign updated",
           description: "The campaign has been successfully updated",
         });
       } else {
-        await apiRequest("POST", "/api/campaigns", data);
+        console.log("Creating new campaign");
+        const response = await apiRequest("POST", "/api/campaigns", data);
+        console.log("Create response:", response);
         toast({
           title: "Campaign created",
           description: "The campaign has been successfully created",
@@ -91,9 +96,10 @@ export function CampaignCreateModal({
       form.reset();
       onClose();
     } catch (error) {
+      console.error("Error submitting campaign:", error);
       toast({
         title: "Error",
-        description: `Failed to ${isEditing ? "update" : "create"} the campaign`,
+        description: `Failed to ${isEditing ? "update" : "create"} the campaign: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -101,6 +107,9 @@ export function CampaignCreateModal({
     }
   };
 
+  // Debug form errors
+  console.log("Form errors:", form.formState.errors);
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -111,7 +120,20 @@ export function CampaignCreateModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(
+            data => {
+              console.log("Form submitted successfully with data:", data);
+              onSubmit(data);
+            }, 
+            errors => {
+              console.error("Form validation failed:", errors);
+              toast({
+                title: "Validation Error",
+                description: "Please check the form for errors",
+                variant: "destructive",
+              });
+            }
+          )} className="space-y-4">
             <FormField
               control={form.control}
               name="title"
