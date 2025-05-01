@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { z } from "zod";
 import {
   Dialog,
@@ -60,6 +60,15 @@ export function CampaignCreateModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "url">("upload");
+  
+  // Initialize the tab based on initial data
+  useEffect(() => {
+    if (initialData?.imageUrl) {
+      // If the image URL is a data URL (uploaded image), set the tab to "upload"
+      // Otherwise, set it to "url"
+      setActiveTab(initialData.imageUrl.startsWith("data:image/") ? "upload" : "url");
+    }
+  }, [initialData]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -153,7 +162,7 @@ export function CampaignCreateModal({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Edit Campaign" : "Create New Campaign"}
@@ -197,7 +206,11 @@ export function CampaignCreateModal({
                   <FormLabel>Campaign Image</FormLabel>
                   <FormControl>
                     <div className="grid gap-4">
-                      <Tabs defaultValue="upload" className="w-full" onValueChange={(value) => setActiveTab(value as "upload" | "url")}>
+                      <Tabs 
+                        defaultValue={activeTab} 
+                        value={activeTab}
+                        className="w-full" 
+                        onValueChange={(value) => setActiveTab(value as "upload" | "url")}>
                         <TabsList className="grid w-full grid-cols-2">
                           <TabsTrigger value="upload" className="flex items-center gap-2">
                             <Upload size={14} />
@@ -245,7 +258,7 @@ export function CampaignCreateModal({
                       </Tabs>
                       
                       {field.value && (
-                        <div className="w-full h-40 rounded-md border overflow-hidden">
+                        <div className="w-full h-36 rounded-md border overflow-hidden">
                           <img
                             src={field.value}
                             alt="Campaign preview"
