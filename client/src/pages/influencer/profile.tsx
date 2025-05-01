@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,19 +26,21 @@ import { z } from "zod";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Upload } from "lucide-react";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 // Profile form schema
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   bio: z.string().optional(),
   instagramHandle: z.string().optional(),
-  website: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   profilePicture: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-export default function ProfilePage() {
+export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +51,6 @@ export default function ProfilePage() {
     name: user?.name || "",
     bio: "",
     instagramHandle: "",
-    website: "",
     profilePicture: "",
   };
   
@@ -111,164 +111,150 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container py-8 max-w-4xl">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-          <p className="text-muted-foreground">
-            Manage your public profile information
-          </p>
-        </div>
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+      <Sidebar className="hidden md:flex" />
+      
+      <div className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+        <Header title="Profile" description="Manage your public profile information" />
+        
+        <main className="flex-1 overflow-auto p-4 md:p-6">
+          <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="profile">Profile Info</TabsTrigger>
+                <TabsTrigger value="social">Social Media</TabsTrigger>
+              </TabsList>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="profile">Profile Info</TabsTrigger>
-            <TabsTrigger value="social">Social Media</TabsTrigger>
-          </TabsList>
+              <TabsContent value="profile">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Your Profile</CardTitle>
+                    <CardDescription>
+                      This information will be visible to restaurants when reviewing your submissions
+                    </CardDescription>
+                  </CardHeader>
 
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>
-                  This information will be visible to restaurants when reviewing your submissions
-                </CardDescription>
-              </CardHeader>
+                  <CardContent>
+                    <div className="mb-6">
+                      <Avatar className="w-24 h-24 mx-auto">
+                        <AvatarImage src={profileImageSrc} alt={user.name} />
+                        <AvatarFallback className="text-xl">{user.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="mt-4 text-center">
+                        <label htmlFor="profile-picture" className="cursor-pointer inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+                          <Upload size={14} /> Upload profile picture
+                        </label>
+                        <Input 
+                          id="profile-picture" 
+                          type="file" 
+                          accept="image/*"
+                          className="hidden" 
+                          onChange={handleImageUpload} 
+                        />
+                      </div>
+                    </div>
 
-              <CardContent>
-                <div className="mb-6">
-                  <Avatar className="w-24 h-24 mx-auto">
-                    <AvatarImage src={profileImageSrc} alt={user.name} />
-                    <AvatarFallback className="text-xl">{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="mt-4 text-center">
-                    <label htmlFor="profile-picture" className="cursor-pointer inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
-                      <Upload size={14} /> Upload profile picture
-                    </label>
-                    <Input 
-                      id="profile-picture" 
-                      type="file" 
-                      accept="image/*"
-                      className="hidden" 
-                      onChange={handleImageUpload} 
-                    />
-                  </div>
-                </div>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Display Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your name" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                This is the name that will be displayed to others
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Display Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your name" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This is the name that will be displayed to others
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                          control={form.control}
+                          name="bio"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Bio</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Tell restaurants about yourself..."
+                                  {...field}
+                                  rows={4}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Brief description of your content style and audience
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="bio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bio</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Tell restaurants about yourself..."
-                              {...field}
-                              rows={4}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Brief description of your content style and audience
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? "Saving..." : "Save Changes"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <TabsContent value="social">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Social Media Accounts</CardTitle>
+                    <CardDescription>
+                      Link your social media accounts to help verify your identity
+                    </CardDescription>
+                  </CardHeader>
 
-          <TabsContent value="social">
-            <Card>
-              <CardHeader>
-                <CardTitle>Social Media Accounts</CardTitle>
-                <CardDescription>
-                  Link your social media accounts to help verify your identity
-                </CardDescription>
-              </CardHeader>
+                  <CardContent>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="instagramHandle"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Instagram Handle</FormLabel>
+                              <FormControl>
+                                <div className="flex">
+                                  <span className="inline-flex items-center px-3 bg-muted border border-r-0 border-input rounded-l-md">
+                                    @
+                                  </span>
+                                  <Input 
+                                    className="rounded-l-none" 
+                                    placeholder="username" 
+                                    {...field} 
+                                  />
+                                </div>
+                              </FormControl>
+                              <FormDescription>
+                                Your Instagram handle without the @ symbol
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="instagramHandle"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Instagram Handle</FormLabel>
-                          <FormControl>
-                            <div className="flex">
-                              <span className="inline-flex items-center px-3 bg-muted border border-r-0 border-input rounded-l-md">
-                                @
-                              </span>
-                              <Input 
-                                className="rounded-l-none" 
-                                placeholder="username" 
-                                {...field} 
-                              />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Your Instagram handle without the @ symbol
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="website"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Website or Portfolio</FormLabel>
-                          <FormControl>
-                            <Input placeholder="https://yourwebsite.com" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Your personal website or content portfolio
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? "Saving..." : "Save Changes"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+        
+        <MobileNav />
       </div>
     </div>
   );

@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -45,6 +44,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 // Account settings form schema
 const accountFormSchema = z.object({
@@ -71,7 +73,7 @@ type AccountFormValues = z.infer<typeof accountFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
-export default function SettingsPage() {
+export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -180,339 +182,331 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container py-8 max-w-4xl">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
-        </div>
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+      <Sidebar className="hidden md:flex" />
+      
+      <div className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+        <Header title="Settings" description="Manage your account settings and preferences" />
+        
+        <main className="flex-1 overflow-auto p-4 md:p-6">
+          <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+            <Tabs defaultValue="account" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="account" className="flex items-center gap-2">
+                  <LockKeyhole size={14} />
+                  <span>Account</span>
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="flex items-center gap-2">
+                  <Bell size={14} />
+                  <span>Notifications</span>
+                </TabsTrigger>
+                <TabsTrigger value="payment" className="flex items-center gap-2">
+                  <CreditCard size={14} />
+                  <span>Payment</span>
+                </TabsTrigger>
+              </TabsList>
 
-        <Tabs defaultValue="account" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="account" className="flex items-center gap-2">
-              <LockKeyhole size={14} />
-              <span>Account</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell size={14} />
-              <span>Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger value="payment" className="flex items-center gap-2">
-              <CreditCard size={14} />
-              <span>Payment</span>
-            </TabsTrigger>
-          </TabsList>
+              <TabsContent value="account">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Settings</CardTitle>
+                    <CardDescription>
+                      Update your account information and preferences
+                    </CardDescription>
+                  </CardHeader>
 
-          <TabsContent value="account">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>
-                  Update your account information and preferences
-                </CardDescription>
-              </CardHeader>
+                  <CardContent>
+                    <Form {...accountForm}>
+                      <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className="space-y-4">
+                        <FormField
+                          control={accountForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email Address</FormLabel>
+                              <FormControl>
+                                <Input placeholder="youremail@example.com" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                This is the email used for important account notifications
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-              <CardContent>
-                <Form {...accountForm}>
-                  <form onSubmit={accountForm.handleSubmit(onAccountSubmit)} className="space-y-4">
-                    <FormField
-                      control={accountForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="youremail@example.com" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This is the email used for important account notifications
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <Separator className="my-6" />
 
-                    <Separator className="my-6" />
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">Security</h3>
-                      
-                      <div>
-                        <Button variant="outline" type="button">
-                          Change Password
-                        </Button>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Would you like to delete your account?
-                        </p>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" type="button">
-                              Delete Account
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-medium">Security</h3>
+                          
+                          <div>
+                            <Button variant="outline" type="button">
+                              Change Password
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete your
-                                account and remove all your data from our servers.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                Delete Account
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-
-                    <div className="pt-4">
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : "Save Account Settings"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Choose how and when you receive notifications
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <Form {...notificationForm}>
-                  <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
-                    <FormField
-                      control={notificationForm.control}
-                      name="emailNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Email Notifications</FormLabel>
-                            <FormDescription>
-                              Receive email notifications about your account activity
-                            </FormDescription>
                           </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
 
-                    <FormField
-                      control={notificationForm.control}
-                      name="newCampaignAlerts"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">New Campaign Alerts</FormLabel>
-                            <FormDescription>
-                              Get notified when new campaigns matching your profile are available
-                            </FormDescription>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Would you like to delete your account?
+                            </p>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="destructive" type="button">
+                                  Delete Account
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your
+                                    account and remove all your data from our servers.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete Account
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                        </div>
 
-                    <FormField
-                      control={notificationForm.control}
-                      name="paymentNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Payment Notifications</FormLabel>
-                            <FormDescription>
-                              Receive notifications about your payments and earnings
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
+                        <div className="pt-4">
+                          <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Saving..." : "Save Account Settings"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                    <div className="pt-4">
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : "Save Notification Settings"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <TabsContent value="notifications">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Notification Preferences</CardTitle>
+                    <CardDescription>
+                      Choose how and when you receive notifications
+                    </CardDescription>
+                  </CardHeader>
 
-          <TabsContent value="payment">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Settings</CardTitle>
-                <CardDescription>
-                  How and where you would like to receive your earnings
-                </CardDescription>
-              </CardHeader>
+                  <CardContent>
+                    <Form {...notificationForm}>
+                      <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
+                        <FormField
+                          control={notificationForm.control}
+                          name="emailNotifications"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">Email Notifications</FormLabel>
+                                <FormDescription>
+                                  Receive email notifications about your account activity
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
 
-              <CardContent>
-                <Form {...paymentForm}>
-                  <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
-                    <FormField
-                      control={paymentForm.control}
-                      name="paymentMethod"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Payment Method</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select payment method" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="paypal">PayPal</SelectItem>
-                              <SelectItem value="bankTransfer">Bank Transfer</SelectItem>
-                              <SelectItem value="venmo">Venmo</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Choose how you would like to receive your earnings
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                        <FormField
+                          control={notificationForm.control}
+                          name="newCampaignAlerts"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">New Campaign Alerts</FormLabel>
+                                <FormDescription>
+                                  Get notified when new campaigns matching your profile are available
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
 
-                    {paymentForm.watch("paymentMethod") === "paypal" && (
-                      <FormField
-                        control={paymentForm.control}
-                        name="paymentEmail"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>PayPal Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="your-paypal-email@example.com" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Enter the email address associated with your PayPal account
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
+                        <FormField
+                          control={notificationForm.control}
+                          name="paymentNotifications"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">Payment Notifications</FormLabel>
+                                <FormDescription>
+                                  Receive notifications about your payments and earnings
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="pt-4">
+                          <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Saving..." : "Save Notification Settings"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="payment">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Settings</CardTitle>
+                    <CardDescription>
+                      How and where you would like to receive your earnings
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent>
+                    <Form {...paymentForm}>
+                      <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
+                        <FormField
+                          control={paymentForm.control}
+                          name="paymentMethod"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Payment Method</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select payment method" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="paypal">PayPal</SelectItem>
+                                  <SelectItem value="bankTransfer">Bank Transfer</SelectItem>
+                                  <SelectItem value="venmo">Venmo</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Choose how you would like to receive your earnings
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {paymentForm.watch("paymentMethod") === "paypal" && (
+                          <FormField
+                            control={paymentForm.control}
+                            name="paymentEmail"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>PayPal Email</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="your-paypal-email@example.com" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                  The email address associated with your PayPal account
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         )}
-                      />
-                    )}
 
-                    {paymentForm.watch("paymentMethod") === "bankTransfer" && (
-                      <>
-                        <FormField
-                          control={paymentForm.control}
-                          name="accountName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Account Holder Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="John Doe" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Name on your bank account
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={paymentForm.control}
-                          name="accountNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Account Number</FormLabel>
-                              <FormControl>
-                                <Input placeholder="000000000000" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Your bank account number
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={paymentForm.control}
-                          name="routingNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Routing Number</FormLabel>
-                              <FormControl>
-                                <Input placeholder="00000000" {...field} />
-                              </FormControl>
-                              <FormDescription>
-                                Your bank routing number
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
-
-                    {paymentForm.watch("paymentMethod") === "venmo" && (
-                      <FormField
-                        control={paymentForm.control}
-                        name="paymentEmail"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Venmo Email or Username</FormLabel>
-                            <FormControl>
-                              <Input placeholder="@venmo-username" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Enter your Venmo email or username
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
+                        {paymentForm.watch("paymentMethod") === "bankTransfer" && (
+                          <>
+                            <FormField
+                              control={paymentForm.control}
+                              name="accountName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Account Holder Name</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="John Doe" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={paymentForm.control}
+                              name="accountNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Account Number</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="123456789" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={paymentForm.control}
+                              name="routingNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Routing Number</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="987654321" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </>
                         )}
-                      />
-                    )}
 
-                    <div className="pt-4">
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : "Save Payment Settings"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                        {paymentForm.watch("paymentMethod") === "venmo" && (
+                          <FormField
+                            control={paymentForm.control}
+                            name="paymentEmail"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Venmo Email or Username</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="@venmo-username" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                  The email or username associated with your Venmo account
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                        <div className="pt-4">
+                          <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Saving..." : "Save Payment Settings"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+        
+        <MobileNav />
       </div>
     </div>
   );
