@@ -34,9 +34,15 @@ export const campaigns = pgTable("campaigns", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertCampaignSchema = createInsertSchema(campaigns).omit({
-  id: true,
-  createdAt: true,
+// Create the schema with additional validation
+export const insertCampaignSchema = z.object({
+  restaurantId: z.number(),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  imageUrl: z.string().min(1, "Image URL is required"),
+  rewardAmount: z.coerce.number().min(1, "Amount must be at least $1"),
+  rewardViews: z.coerce.number().min(100, "Views must be at least 100"),
+  status: z.enum(["draft", "active", "ended"]),
 });
 
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;

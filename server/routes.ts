@@ -78,18 +78,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/campaigns", requireRestaurantRole, async (req, res) => {
     try {
+      console.log("Received campaign creation request:", req.body);
       const user = req.user as User;
-      const campaignData = insertCampaignSchema.parse({
+      
+      // Add restaurantId from authenticated user
+      const campaignDataWithRestaurantId = {
         ...req.body,
         restaurantId: user.id
-      });
+      };
       
-      const campaign = await storage.createCampaign(campaignData);
-      res.status(201).json(campaign);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).send(fromZodError(error).message);
+      console.log("Validating campaign data:", campaignDataWithRestaurantId);
+      
+      try {
+        const campaignData = insertCampaignSchema.parse(campaignDataWithRestaurantId);
+        console.log("Validation successful, creating campaign...");
+        
+        const campaign = await storage.createCampaign(campaignData);
+        console.log("Campaign created successfully:", campaign);
+        
+        res.status(201).json(campaign);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          console.error("Validation error:", validationError.errors);
+          return res.status(400).json({
+            error: "Validation Error",
+            details: fromZodError(validationError).message,
+            fieldErrors: validationError.errors.map(err => ({
+              field: err.path.join('.'),
+              message: err.message
+            }))
+          });
+        }
+        throw validationError;
       }
+    } catch (error) {
       console.error("Error creating campaign:", error);
       return res.status(500).send("Internal server error");
     }

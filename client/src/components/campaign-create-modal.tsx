@@ -28,17 +28,18 @@ import { insertCampaignSchema, Campaign } from "@shared/schema";
 import { Label } from "@/components/ui/label";
 import { ImageIcon } from "lucide-react";
 
-// Extend the schema with validation
-const formSchema = insertCampaignSchema.extend({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  imageUrl: z.string().url("Please enter a valid image URL"),
-  rewardAmount: z.coerce.number().min(1, "Amount must be at least $1"),
-  rewardViews: z.coerce.number().min(100, "Views must be at least 100"),
-  status: z.enum(["draft", "active", "ended"], {
-    required_error: "Please select a status",
-  }),
-});
+// Extend the insertCampaignSchema from shared/schema.ts but omit restaurantId (which is set by server)
+const formSchema = insertCampaignSchema
+  .omit({ restaurantId: true })
+  .extend({
+    // Add URL validation
+    imageUrl: z.string()
+      .min(1, "Image URL is required")
+      .refine(
+        (url) => url.startsWith("http://") || url.startsWith("https://"),
+        "URL must start with http:// or https://"
+      ),
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
