@@ -26,18 +26,19 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertCampaignSchema, Campaign } from "@shared/schema";
 import { Label } from "@/components/ui/label";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, Upload, Link as LinkIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Extend the insertCampaignSchema from shared/schema.ts but omit restaurantId (which is set by server)
 const formSchema = insertCampaignSchema
   .omit({ restaurantId: true })
   .extend({
-    // Add URL validation
+    // Update validation to accept both http URLs and data URLs (from file uploads)
     imageUrl: z.string()
       .min(1, "Image URL is required")
       .refine(
-        (url) => url.startsWith("http://") || url.startsWith("https://"),
-        "URL must start with http:// or https://"
+        (url) => url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:image/"),
+        "URL must be a valid image URL or uploaded file"
       ),
   });
 
@@ -57,6 +58,8 @@ export function CampaignCreateModal({
   const { toast } = useToast();
   const isEditing = !!initialData;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"upload" | "url">("upload");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,6 +72,43 @@ export function CampaignCreateModal({
       status: "active",
     },
   });
+  
+  // Handle file upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPG, PNG, GIF, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create a data URL for the image
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setUploadedImage(result);
+      
+      // Set the URL for the form
+      form.setValue("imageUrl", result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -154,16 +194,58 @@ export function CampaignCreateModal({
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Campaign Image URL</FormLabel>
+                  <FormLabel>Campaign Image</FormLabel>
                   <FormControl>
-                    <div className="grid gap-2">
-                      <Input 
-                        placeholder="https://example.com/image.jpg" 
-                        onChange={(e) => field.onChange(e.target.value)}
-                        value={field.value}
-                      />
+                    <div className="grid gap-4">
+                      <Tabs defaultValue="upload" className="w-full" onValueChange={(value) => setActiveTab(value as "upload" | "url")}>
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="upload" className="flex items-center gap-2">
+                            <Upload size={14} />
+                            <span>Upload</span>
+                          </TabsTrigger>
+                          <TabsTrigger value="url" className="flex items-center gap-2">
+                            <LinkIcon size={14} />
+                            <span>URL</span>
+                          </TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="upload" className="pt-2">
+                          <div className="border-2 border-dashed border-muted rounded-md p-4 text-center hover:border-primary/50 transition cursor-pointer">
+                            <Input 
+                              id="image-upload"
+                              type="file" 
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageUpload}
+                            />
+                            <label htmlFor="image-upload" className="block cursor-pointer">
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="p-2 rounded-full bg-primary/10">
+                                  <Upload className="h-5 w-5 text-primary" />
+                                </div>
+                                <p className="text-sm font-medium">
+                                  Click to upload image
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  JPG, PNG, GIF up to 5MB
+                                </p>
+                              </div>
+                            </label>
+                          </div>
+                        </TabsContent>
+                        <TabsContent value="url" className="pt-2">
+                          <Input 
+                            placeholder="https://example.com/image.jpg" 
+                            onChange={(e) => field.onChange(e.target.value)}
+                            value={field.value.startsWith("data:image/") ? "" : field.value}
+                          />
+                          <FormDescription className="mt-1">
+                            Enter a direct link to an image (JPG, PNG, GIF)
+                          </FormDescription>
+                        </TabsContent>
+                      </Tabs>
+                      
                       {field.value && (
-                        <div className="w-full h-32 rounded-md border overflow-hidden">
+                        <div className="w-full h-40 rounded-md border overflow-hidden">
                           <img
                             src={field.value}
                             alt="Campaign preview"
@@ -182,24 +264,8 @@ export function CampaignCreateModal({
                           />
                         </div>
                       )}
-                      {!field.value && (
-                        <div className="border-2 border-dashed border-muted rounded-md p-4 text-center">
-                          <div className="space-y-2">
-                            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                              <ImageIcon className="h-6 w-6 text-primary" />
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              <span className="text-primary">Enter an image URL</span>
-                              <span> above to preview</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </FormControl>
-                  <FormDescription>
-                    Use a direct link to an image (JPG, PNG, GIF)
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
