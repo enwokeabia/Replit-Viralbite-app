@@ -12,6 +12,7 @@ import {
   LineChart,
   Wallet,
   Settings,
+  Mail,
 } from "lucide-react";
 
 export function MobileNav() {
@@ -40,6 +41,11 @@ export function MobileNav() {
           icon: <ClipboardList size={20} />,
         },
         {
+          path: "/restaurant/private-invitations",
+          label: "Invites",
+          icon: <Mail size={20} />,
+        },
+        {
           path: "/restaurant/analytics",
           label: "Analytics",
           icon: <BarChart size={20} />,
@@ -57,6 +63,11 @@ export function MobileNav() {
           icon: <Search size={20} />,
         },
         {
+          path: "/influencer/private-invitations",
+          label: "Invites",
+          icon: <Mail size={20} />,
+        },
+        {
           path: "/influencer/stats",
           label: "Stats",
           icon: <LineChart size={20} />,
@@ -65,16 +76,6 @@ export function MobileNav() {
           path: "/influencer/earnings",
           label: "Earnings",
           icon: <Wallet size={20} />,
-        },
-        {
-          path: "/influencer/profile",
-          label: "Profile",
-          icon: <User size={20} />,
-        },
-        {
-          path: "/influencer/settings",
-          label: "Settings",
-          icon: <Settings size={20} />,
         },
       ];
 

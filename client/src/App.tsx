@@ -16,12 +16,14 @@ import MyStats from "@/pages/influencer/my-stats";
 import Earnings from "@/pages/influencer/earnings";
 import Profile from "@/pages/influencer/profile";
 import Settings from "@/pages/influencer/settings";
+import InfluencerPrivateInvitations from "@/pages/influencer/private-invitations";
 
 // Restaurant pages
 import RestaurantDashboard from "@/pages/restaurant/dashboard";
 import Campaigns from "@/pages/restaurant/campaigns";
 import Submissions from "@/pages/restaurant/submissions";
 import Analytics from "@/pages/restaurant/analytics";
+import RestaurantPrivateInvitations from "@/pages/restaurant/private-invitations";
 
 function Router() {
   return (
@@ -34,6 +36,7 @@ function Router() {
       <ProtectedRoute path="/restaurant/campaigns" component={Campaigns} />
       <ProtectedRoute path="/restaurant/submissions" component={Submissions} />
       <ProtectedRoute path="/restaurant/analytics" component={Analytics} />
+      <ProtectedRoute path="/restaurant/private-invitations" component={RestaurantPrivateInvitations} />
       
       {/* Influencer Routes */}
       <ProtectedRoute path="/influencer/dashboard" component={InfluencerDashboard} />
@@ -42,6 +45,7 @@ function Router() {
       <ProtectedRoute path="/influencer/earnings" component={Earnings} />
       <ProtectedRoute path="/influencer/profile" component={Profile} />
       <ProtectedRoute path="/influencer/settings" component={Settings} />
+      <ProtectedRoute path="/influencer/private-invitations" component={InfluencerPrivateInvitations} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

@@ -1,173 +1,101 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { PrivateInvitation } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { getQueryFn } from "@/lib/queryClient";
-
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Plus } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { PrivateInvitationCard } from "@/components/private-invitation-card";
+import { Plus } from "lucide-react";
 import { PrivateInvitationModal } from "@/components/private-invitation-modal";
+import { PrivateInvitationCard } from "@/components/private-invitation-card";
+import { type PrivateInvitation } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-export default function PrivateInvitationsPage() {
+export default function RestaurantPrivateInvitations() {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const { data: invitations = [], isLoading } = useQuery<PrivateInvitation[]>({
-    queryKey: ["/api/private-invitations"],
-    queryFn: getQueryFn({ on401: "throw" }),
+
+  const { data: invitations, isLoading } = useQuery({
+    queryKey: ["/api/restaurant/private-invitations"],
+    queryFn: async () => {
+      const res = await fetch(`/api/restaurant/${user?.id}/private-invitations`);
+      if (!res.ok) throw new Error("Failed to fetch private invitations");
+      return await res.json();
+    },
+    enabled: !!user,
   });
 
-  // Filter invitations by status and search term
-  const filterInvitations = (status: string) => {
-    return invitations.filter(invitation => 
-      invitation.status === status && 
-      (invitation.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-       invitation.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/private-invitations/${id}`);
+      if (!res.ok) throw new Error("Failed to delete invitation");
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/restaurant/private-invitations"] });
+      toast({
+        title: "Invitation deleted",
+        description: "The private invitation has been successfully deleted.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete invitation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    if (confirm("Are you sure you want to delete this invitation?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
-  // Group invitations by status
-  const pendingInvitations = filterInvitations("pending");
-  const acceptedInvitations = filterInvitations("accepted");
-  const completedInvitations = filterInvitations("completed");
-  const declinedInvitations = filterInvitations("declined");
-
   return (
-    <div className="container py-6">
-      <Header 
-        title="Private Invitations" 
-        description="Send custom collaboration invitations directly to specific influencers"
-      />
-
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
-        <div className="relative w-full sm:w-64">
-          <Input
-            placeholder="Search invitations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> New Invitation
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <Header 
+          title="Private Invitations" 
+          description="Create and manage your exclusive invitations to specific influencers"
+        />
+        <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+          <Plus size={16} />
+          <span>New Invitation</span>
         </Button>
       </div>
 
-      <Separator className="my-6" />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : invitations?.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium">No private invitations yet</h3>
+          <p className="text-muted-foreground mt-1">
+            Create your first invitation to work directly with a specific influencer
+          </p>
+          <Button onClick={() => setIsModalOpen(true)} className="mt-4">
+            Create Invitation
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {invitations?.map((invitation: PrivateInvitation) => (
+            <PrivateInvitationCard 
+              key={invitation.id} 
+              invitation={invitation}
+              viewType="restaurant"
+              onDelete={() => handleDelete(invitation.id)}
+            />
+          ))}
+        </div>
+      )}
 
-      <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="pending">
-            Pending <span className="ml-2 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-xs">{pendingInvitations.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="accepted">
-            Accepted <span className="ml-2 bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">{acceptedInvitations.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">{completedInvitations.length}</span>
-          </TabsTrigger>
-          <TabsTrigger value="declined">
-            Declined <span className="ml-2 bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs">{declinedInvitations.length}</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pending" className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-8">Loading invitations...</div>
-          ) : pendingInvitations.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Send className="mx-auto h-12 w-12 opacity-20 mb-2" />
-              <h3 className="text-lg font-semibold">No pending invitations</h3>
-              <p className="mt-1">Create a new invitation to get started</p>
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {pendingInvitations.map((invitation) => (
-                <PrivateInvitationCard 
-                  key={invitation.id} 
-                  invitation={invitation} 
-                  viewType="restaurant" 
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="accepted" className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-8">Loading invitations...</div>
-          ) : acceptedInvitations.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Send className="mx-auto h-12 w-12 opacity-20 mb-2" />
-              <h3 className="text-lg font-semibold">No accepted invitations</h3>
-              <p className="mt-1">When influencers accept your invitations, they'll appear here</p>
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {acceptedInvitations.map((invitation) => (
-                <PrivateInvitationCard 
-                  key={invitation.id} 
-                  invitation={invitation} 
-                  viewType="restaurant" 
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="completed" className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-8">Loading invitations...</div>
-          ) : completedInvitations.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Send className="mx-auto h-12 w-12 opacity-20 mb-2" />
-              <h3 className="text-lg font-semibold">No completed invitations</h3>
-              <p className="mt-1">When influencers submit content, they'll appear here</p>
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {completedInvitations.map((invitation) => (
-                <PrivateInvitationCard 
-                  key={invitation.id} 
-                  invitation={invitation} 
-                  viewType="restaurant" 
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="declined" className="space-y-6">
-          {isLoading ? (
-            <div className="text-center py-8">Loading invitations...</div>
-          ) : declinedInvitations.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Send className="mx-auto h-12 w-12 opacity-20 mb-2" />
-              <h3 className="text-lg font-semibold">No declined invitations</h3>
-              <p className="mt-1">Declined invitations will appear here</p>
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {declinedInvitations.map((invitation) => (
-                <PrivateInvitationCard 
-                  key={invitation.id} 
-                  invitation={invitation} 
-                  viewType="restaurant" 
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      <PrivateInvitationModal
-        isOpen={isModalOpen}
+      <PrivateInvitationModal 
+        isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
       />
     </div>

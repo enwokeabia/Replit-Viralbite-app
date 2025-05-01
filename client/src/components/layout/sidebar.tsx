@@ -13,6 +13,7 @@ import {
   Wallet,
   LogOut,
   Settings,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -53,6 +54,11 @@ export function Sidebar({ className }: SidebarProps) {
           icon: <ClipboardList size={18} />,
         },
         {
+          path: "/restaurant/private-invitations",
+          label: "Private Invitations",
+          icon: <Mail size={18} />,
+        },
+        {
           path: "/restaurant/analytics",
           label: "Analytics",
           icon: <BarChart size={18} />,
@@ -68,6 +74,11 @@ export function Sidebar({ className }: SidebarProps) {
           path: "/influencer/browse",
           label: "Browse Campaigns",
           icon: <Search size={18} />,
+        },
+        {
+          path: "/influencer/private-invitations",
+          label: "Private Invitations",
+          icon: <Mail size={18} />,
         },
         {
           path: "/influencer/stats",
