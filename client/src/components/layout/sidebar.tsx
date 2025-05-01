@@ -92,8 +92,8 @@ export function Sidebar({ className }: SidebarProps) {
       )}
     >
       <div className="p-4 border-b border-border">
-        <h1 className="text-xl font-bold text-primary">SustainConnect</h1>
-        <p className="text-sm text-muted-foreground">Restaurant-Influencer Platform</p>
+        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-700 to-purple-500 text-transparent bg-clip-text">ViralBite</h1>
+        <p className="text-sm text-muted-foreground">Restaurant-Influencer Marketing</p>
       </div>
 
       <div className="p-4">

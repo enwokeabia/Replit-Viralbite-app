@@ -76,7 +76,7 @@ export function MobileNav() {
               className={cn(
                 "flex flex-col items-center p-3",
                 location === item.path
-                  ? `text-${isRestaurant ? "primary" : "accent"}`
+                  ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
