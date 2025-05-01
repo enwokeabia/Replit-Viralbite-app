@@ -83,7 +83,7 @@ export default function MyStats() {
           ) : (
             <>
               {/* Performance Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Total Views</CardTitle>
@@ -92,34 +92,6 @@ export default function MyStats() {
                   <CardContent>
                     <div className="text-2xl font-bold">{stats?.totalViews?.toLocaleString() || 0}</div>
                     <p className="text-xs text-muted-foreground">Across all submissions</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Avg. Views</CardTitle>
-                    <BarChart2 className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{Math.round(avgViewsPerSubmission).toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">Per approved submission</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Approved Rate</CardTitle>
-                    <Camera className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {submissions && submissions.length > 0
-                        ? `${Math.round((approvedSubmissions.length / submissions.length) * 100)}%`
-                        : "0%"}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {approvedSubmissions.length} of {submissions?.length || 0} submissions
-                    </p>
                   </CardContent>
                 </Card>
                 
