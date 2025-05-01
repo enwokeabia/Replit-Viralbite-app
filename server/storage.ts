@@ -130,7 +130,13 @@ export class MemStorage implements IStorage {
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
     const id = this.campaignIdCounter++;
     const createdAt = new Date();
-    const campaign: Campaign = { ...insertCampaign, id, createdAt };
+    const campaign: Campaign = { 
+      ...insertCampaign, 
+      id, 
+      createdAt,
+      maxPayoutPerInfluencer: insertCampaign.maxPayoutPerInfluencer || null,
+      maxBudget: insertCampaign.maxBudget || null
+    };
     this.campaigns.set(id, campaign);
     return campaign;
   }
@@ -184,7 +190,8 @@ export class MemStorage implements IStorage {
       id, 
       views: 0,
       earnings: 0,
-      createdAt 
+      createdAt,
+      notes: insertSubmission.notes || null
     };
     this.submissions.set(id, submission);
     return submission;
@@ -230,6 +237,8 @@ export class MemStorage implements IStorage {
       id,
       inviteCode,
       createdAt,
+      imageUrl: insertInvitation.imageUrl || null,
+      expiresAt: insertInvitation.expiresAt || null
     };
     
     this.privateInvitations.set(id, invitation);
@@ -269,6 +278,7 @@ export class MemStorage implements IStorage {
       views: 0,
       earnings: 0,
       createdAt,
+      notes: insertSubmission.notes || null
     };
     
     this.privateSubmissions.set(id, submission);

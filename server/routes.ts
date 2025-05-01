@@ -770,8 +770,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("Unauthorized to delete this invitation");
       }
       
-      // Implement deletion in storage.ts
-      // await storage.deletePrivateInvitation(invitationId);
+      // Delete the invitation
+      await storage.deletePrivateInvitation(invitationId);
       
       res.status(204).send();
     } catch (error) {
