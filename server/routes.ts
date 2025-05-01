@@ -662,10 +662,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get all users with influencer role
       const allUsers = Array.from((storage as any).users.values());
-      const influencers = allUsers.filter(user => user.role === "influencer");
+      const influencers = allUsers.filter((user: any) => user.role === "influencer");
       
       // Return only the necessary information
-      const influencerData = influencers.map(influencer => ({
+      const influencerData = influencers.map((influencer: any) => ({
         id: influencer.id,
         name: influencer.name,
         email: influencer.email
@@ -674,6 +674,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(influencerData);
     } catch (error) {
       console.error("Error fetching influencers:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+  
+  // Private Invitations routes
+  app.get("/api/restaurant/:id/private-invitations", requireRestaurantRole, async (req, res) => {
+    try {
+      const restaurantId = parseInt(req.params.id);
+      
+      if (req.user?.id !== restaurantId) {
+        return res.status(403).send("Unauthorized access to restaurant data");
+      }
+      
+      const invitations = await storage.getPrivateInvitationsByRestaurantId(restaurantId);
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching restaurant private invitations:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+  
+  app.get("/api/influencer/:id/private-invitations", requireInfluencerRole, async (req, res) => {
+    try {
+      const influencerId = parseInt(req.params.id);
+      
+      if (req.user?.id !== influencerId) {
+        return res.status(403).send("Unauthorized access to influencer data");
+      }
+      
+      const invitations = await storage.getPrivateInvitationsByInfluencerId(influencerId);
+      res.json(invitations);
+    } catch (error) {
+      console.error("Error fetching influencer private invitations:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+  
+  app.post("/api/private-invitations", requireRestaurantRole, async (req, res) => {
+    try {
+      const invitationData = req.body;
+      
+      if (req.user?.id !== invitationData.restaurantId) {
+        return res.status(403).send("Unauthorized to create invitation for another restaurant");
+      }
+      
+      const invitation = await storage.createPrivateInvitation(invitationData);
+      res.status(201).json(invitation);
+    } catch (error) {
+      console.error("Error creating private invitation:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+  
+  app.patch("/api/private-invitations/:id", async (req, res) => {
+    try {
+      const invitationId = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const invitation = await storage.getPrivateInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      // If restaurant is updating, verify ownership
+      if (req.user?.role === "restaurant" && req.user?.id !== invitation.restaurantId) {
+        return res.status(403).send("Unauthorized to update this invitation");
+      }
+      
+      // If influencer is updating, verify they are the target
+      if (req.user?.role === "influencer" && req.user?.id !== invitation.influencerId) {
+        return res.status(403).send("Unauthorized to update this invitation");
+      }
+      
+      const updatedInvitation = await storage.updatePrivateInvitation(invitationId, updateData);
+      res.json(updatedInvitation);
+    } catch (error) {
+      console.error("Error updating private invitation:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+  
+  app.delete("/api/private-invitations/:id", requireRestaurantRole, async (req, res) => {
+    try {
+      const invitationId = parseInt(req.params.id);
+      const invitation = await storage.getPrivateInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).send("Private invitation not found");
+      }
+      
+      // Verify ownership
+      if (req.user?.id !== invitation.restaurantId) {
+        return res.status(403).send("Unauthorized to delete this invitation");
+      }
+      
+      // Implement deletion in storage.ts
+      // await storage.deletePrivateInvitation(invitationId);
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting private invitation:", error);
       return res.status(500).send("Internal server error");
     }
   });

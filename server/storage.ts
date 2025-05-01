@@ -42,6 +42,7 @@ export interface IStorage {
   getPrivateInvitationsByInfluencerId(influencerId: number): Promise<PrivateInvitation[]>;
   createPrivateInvitation(invitation: InsertPrivateInvitation): Promise<PrivateInvitation>;
   updatePrivateInvitation(id: number, invitation: Partial<PrivateInvitation>): Promise<PrivateInvitation | undefined>;
+  deletePrivateInvitation(id: number): Promise<boolean>;
   
   // Private Submission methods
   getPrivateSubmission(id: number): Promise<PrivateSubmission | undefined>;
@@ -242,6 +243,10 @@ export class MemStorage implements IStorage {
     const updatedInvitation = { ...invitation, ...invitationUpdate };
     this.privateInvitations.set(id, updatedInvitation);
     return updatedInvitation;
+  }
+  
+  async deletePrivateInvitation(id: number): Promise<boolean> {
+    return this.privateInvitations.delete(id);
   }
 
   // Private Submission methods
