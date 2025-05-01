@@ -11,6 +11,7 @@ import {
   Search,
   LineChart,
   Wallet,
+  Settings,
 } from "lucide-react";
 
 export function MobileNav() {
@@ -64,6 +65,16 @@ export function MobileNav() {
           path: "/influencer/earnings",
           label: "Earnings",
           icon: <Wallet size={20} />,
+        },
+        {
+          path: "/influencer/profile",
+          label: "Profile",
+          icon: <User size={20} />,
+        },
+        {
+          path: "/influencer/settings",
+          label: "Settings",
+          icon: <Settings size={20} />,
         },
       ];
 
