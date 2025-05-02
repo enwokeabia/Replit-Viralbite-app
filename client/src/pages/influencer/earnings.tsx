@@ -200,21 +200,7 @@ export default function Earnings() {
                 </CardContent>
               </Card>
               
-              {/* Placeholder for Earnings Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Earnings Over Time</CardTitle>
-                  <CardDescription>View your earnings progress</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 flex items-center justify-center bg-slate-50 rounded">
-                    <div className="text-slate-400 text-center">
-                      <LineChart className="h-10 w-10 mx-auto mb-2 text-muted" />
-                      <p>Earnings trend chart would be displayed here</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+
             </>
           )}
         </main>
