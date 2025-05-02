@@ -185,7 +185,7 @@ export default function Earnings() {
                       <p>No earnings data available yet</p>
                       <p className="text-sm mt-1">Submit your first campaign to start earning</p>
                       <Link href="/influencer/browse">
-                        <Button variant="outline" className="mt-4">
+                        <Button className="mt-4 bg-purple-700 hover:bg-purple-800 text-white">
                           Browse Campaigns
                         </Button>
                       </Link>
@@ -231,7 +231,7 @@ export default function Earnings() {
                       <Camera className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                       <p>No submissions data available</p>
                       <Link href="/influencer/browse">
-                        <Button variant="outline" className="mt-4">
+                        <Button className="mt-4 bg-purple-700 hover:bg-purple-800 text-white">
                           Browse Campaigns
                         </Button>
                       </Link>
