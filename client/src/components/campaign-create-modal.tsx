@@ -40,6 +40,7 @@ const formSchema = insertCampaignSchema
         (url) => url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:image/"),
         "URL must be a valid image URL or uploaded file"
       ),
+    location: z.string().optional(),
     maxPayoutPerInfluencer: z.coerce.number().min(1, "Max payout must be at least $1").optional(),
     maxBudget: z.coerce.number().min(1, "Budget must be at least $1").optional(),
   });
@@ -84,6 +85,7 @@ export function CampaignCreateModal({
       : {
         title: "",
         description: "",
+        location: "",
         imageUrl: "",
         rewardAmount: 10,
         rewardViews: 1000,
@@ -343,6 +345,27 @@ export function CampaignCreateModal({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location <span className="text-muted-foreground text-sm">(Optional)</span></FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g. New York, NY" 
+                      {...field} 
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    City, state, or region where your restaurant is located
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
