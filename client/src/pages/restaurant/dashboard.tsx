@@ -3,7 +3,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { StatsCard } from "@/components/stats-card";
-import { Loader2, Megaphone, ClipboardList, Eye, DollarSign } from "lucide-react";
+import { Loader2, Megaphone, ClipboardList, Eye, DollarSign, ThumbsUp } from "lucide-react";
 import { Submission, Campaign } from "@shared/schema";
 import { SubmissionCard } from "@/components/submission-card";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,6 +17,7 @@ export default function RestaurantDashboard() {
     totalSubmissions: number;
     approvedSubmissions: number;
     totalViews: number;
+    totalLikes: number;
     totalSpent: number;
   }>({
     queryKey: ['/api/stats'],
@@ -52,7 +53,7 @@ export default function RestaurantDashboard() {
           ) : (
             <>
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
                 <StatsCard
                   title="Active Campaigns"
                   value={stats?.activeCampaigns || 0}
@@ -79,6 +80,16 @@ export default function RestaurantDashboard() {
                   icon={<Eye className="h-5 w-5 text-accent" />}
                   trend={{
                     value: "Across all campaigns",
+                    positive: true,
+                  }}
+                />
+                
+                <StatsCard
+                  title="Total Likes"
+                  value={stats?.totalLikes?.toLocaleString() || 0}
+                  icon={<ThumbsUp className="h-5 w-5 text-violet-600" />}
+                  trend={{
+                    value: "From all content",
                     positive: true,
                   }}
                 />

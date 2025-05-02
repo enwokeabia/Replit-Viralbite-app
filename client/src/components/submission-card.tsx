@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, DollarSign } from "lucide-react";
+import { Eye, DollarSign, ThumbsUp } from "lucide-react";
 import { Submission } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,7 @@ export function SubmissionCard({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isUpdatingViews, setIsUpdatingViews] = useState(false);
   const [viewCount, setViewCount] = useState(submission.views);
+  const [likeCount, setLikeCount] = useState(submission.likes || 0);
 
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -67,16 +68,19 @@ export function SubmissionCard({
   const handleViewsUpdate = async () => {
     try {
       setIsUpdatingViews(true);
-      await apiRequest("PUT", `/api/submissions/${submission.id}/views`, { views: viewCount });
+      await apiRequest("PUT", `/api/submissions/${submission.id}/views`, { 
+        views: viewCount,
+        likes: likeCount
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
       toast({
-        title: "Views updated",
-        description: "Submission views and earnings have been updated",
+        title: "Stats updated",
+        description: "Views, likes, and earnings have been updated",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update views",
+        description: "Failed to update engagement stats",
         variant: "destructive",
       });
     } finally {
@@ -122,9 +126,12 @@ export function SubmissionCard({
           </p>
         )}
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Eye className="h-4 w-4 mr-1" /> {submission.views} views
+        <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex items-center text-sm text-muted-foreground mr-3">
+            <Eye className="h-4 w-4 mr-1" /> {submission.views.toLocaleString()} views
+          </div>
+          <div className="flex items-center text-sm text-violet-600 mr-3">
+            <ThumbsUp className="h-4 w-4 mr-1" /> {(submission.likes || 0).toLocaleString()} likes
           </div>
           {submission.earnings > 0 && (
             <div className="flex items-center text-sm text-green-600">
@@ -159,26 +166,39 @@ export function SubmissionCard({
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="outline" className="w-full">
-                Update Views
+                Update Engagement
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Update View Count</AlertDialogTitle>
+                <AlertDialogTitle>Update Engagement Stats</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Enter the current view count for this submission
+                  Enter the current view and like counts for this submission
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <div className="py-4">
-                <Label htmlFor="view-count">View Count</Label>
-                <Input
-                  id="view-count"
-                  type="number"
-                  min={0}
-                  value={viewCount}
-                  onChange={(e) => setViewCount(parseInt(e.target.value) || 0)}
-                  className="mt-2"
-                />
+              <div className="space-y-4 py-4">
+                <div>
+                  <Label htmlFor="view-count">View Count</Label>
+                  <Input
+                    id="view-count"
+                    type="number"
+                    min={0}
+                    value={viewCount}
+                    onChange={(e) => setViewCount(parseInt(e.target.value) || 0)}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="like-count">Like Count</Label>
+                  <Input
+                    id="like-count"
+                    type="number"
+                    min={0}
+                    value={likeCount}
+                    onChange={(e) => setLikeCount(parseInt(e.target.value) || 0)}
+                    className="mt-2"
+                  />
+                </div>
               </div>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -127,6 +127,7 @@ export const privateSubmissions = pgTable("private_submissions", {
 export const insertPrivateSubmissionSchema = createInsertSchema(privateSubmissions).omit({
   id: true,
   views: true,
+  likes: true,
   earnings: true,
   createdAt: true,
 });
