@@ -397,7 +397,11 @@ export function PrivateInvitationModal({ isOpen, onClose }: PrivateInvitationMod
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending}>
+              <Button 
+                type="submit" 
+                disabled={isPending}
+                className="bg-purple-700 hover:bg-purple-800 text-white"
+              >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Invitation
               </Button>

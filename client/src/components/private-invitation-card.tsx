@@ -142,7 +142,7 @@ export function PrivateInvitationCard({
         return (
           <CardFooter className="flex justify-between pt-0">
             <Button 
-              variant="default" 
+              className="bg-purple-700 hover:bg-purple-800 text-white"
               size="sm" 
               onClick={handleAccept}
               disabled={updateStatusMutation.isPending}
@@ -164,7 +164,7 @@ export function PrivateInvitationCard({
       } else if (invitation.status === "accepted") {
         return (
           <CardFooter className="flex justify-end pt-0">
-            <Button variant="default" size="sm" onClick={() => setShowDetails(true)}>
+            <Button className="bg-purple-700 hover:bg-purple-800 text-white" size="sm" onClick={() => setShowDetails(true)}>
               <ExternalLink size={16} className="mr-1" />
               Submit Content
             </Button>
@@ -326,7 +326,7 @@ export function PrivateInvitationCard({
             {isRestaurantView ? (
               <Button variant="outline" onClick={() => setShowDetails(false)}>Close</Button>
             ) : invitation.status === "accepted" ? (
-              <Button onClick={() => setShowDetails(false)}>Submit Content</Button>
+              <Button className="bg-purple-700 hover:bg-purple-800 text-white" onClick={() => setShowDetails(false)}>Submit Content</Button>
             ) : (
               <Button variant="outline" onClick={() => setShowDetails(false)}>Close</Button>
             )}
