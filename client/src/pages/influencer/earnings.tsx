@@ -11,8 +11,9 @@ import { Link } from "wouter";
 import { Progress } from "@/components/ui/progress";
 
 // Helper function to format date
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
+function formatDate(dateString: string | Date) {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -89,20 +90,6 @@ export default function Earnings() {
                         <div>
                           <p className="text-sm font-medium text-muted-foreground">Total Earnings</p>
                           <h3 className="text-4xl font-bold mt-1">${stats?.totalEarnings?.toFixed(2) || '0.00'}</h3>
-                          
-                          {/* Simple progress bar for visual appeal */}
-                          <div className="mt-4 mb-2">
-                            <div className="flex justify-between text-xs mb-1">
-                              <span className="text-muted-foreground">Progress to $1000</span>
-                              <span className="font-medium">
-                                {stats?.totalEarnings ? Math.min(Math.round((stats.totalEarnings / 1000) * 100), 100) : 0}%
-                              </span>
-                            </div>
-                            <Progress 
-                              value={stats?.totalEarnings ? Math.min((stats.totalEarnings / 1000) * 100, 100) : 0} 
-                              className="h-2"
-                            />
-                          </div>
                         </div>
                         
                         <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -125,10 +112,6 @@ export default function Earnings() {
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">Pending Submissions</span>
                           <span className="font-medium">{pendingSubmissions.length}</span>
-                        </div>
-                        <div className="flex justify-between items-center pt-2 border-t">
-                          <span className="text-sm font-medium">Potential Earnings</span>
-                          <span className="font-medium text-green-600">+${potentialEarnings.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
