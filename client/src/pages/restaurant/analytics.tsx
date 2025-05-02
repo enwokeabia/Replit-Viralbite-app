@@ -4,7 +4,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Campaign, Submission } from "@shared/schema";
-import { Loader2, BarChart2, DollarSign, TrendingUp, Activity } from "lucide-react";
+import { Loader2, BarChart2, DollarSign } from "lucide-react";
 
 export default function Analytics() {
   const { data: campaigns, isLoading: isCampaignsLoading } = useQuery<Campaign[]>({
@@ -164,38 +164,7 @@ export default function Analytics() {
                 </CardContent>
               </Card>
               
-              {/* Placeholder Charts */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Views Over Time</CardTitle>
-                    <CardDescription>Total views across all campaigns</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 flex items-center justify-center bg-slate-50 rounded">
-                      <div className="text-slate-400 text-center">
-                        <TrendingUp className="h-10 w-10 mx-auto mb-2 text-muted" />
-                        <p>Views trend chart would be displayed here</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Performance by Campaign</CardTitle>
-                    <CardDescription>Comparing effectiveness across campaigns</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 flex items-center justify-center bg-slate-50 rounded">
-                      <div className="text-slate-400 text-center">
-                        <Activity className="h-10 w-10 mx-auto mb-2 text-muted" />
-                        <p>Campaign comparison chart would be displayed here</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+
             </>
           )}
         </main>

@@ -189,8 +189,12 @@ export function CampaignApplyModal({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit Application"}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="bg-purple-700 hover:bg-purple-800 text-white"
+              >
+                {isSubmitting ? "Submitting..." : "Apply"}
               </Button>
             </DialogFooter>
           </form>

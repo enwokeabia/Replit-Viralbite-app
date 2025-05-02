@@ -153,7 +153,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
               </div>
             ) : (
               <Button
-                variant="default"
+                className="bg-purple-700 hover:bg-purple-800 text-white"
                 size="sm"
                 onClick={() => setShowApplyModal(true)}
                 disabled={campaign.status !== "active"}
