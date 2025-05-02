@@ -117,7 +117,7 @@ export default function InfluencerDashboard() {
                       <CardDescription>Best performing submissions based on views</CardDescription>
                     </div>
                     <Link href="/influencer/stats">
-                      <Button variant="default" size="sm" className="text-sm">
+                      <Button size="sm" className="text-sm bg-purple-700 hover:bg-purple-800 text-white">
                         View all
                       </Button>
                     </Link>
@@ -174,7 +174,7 @@ export default function InfluencerDashboard() {
                       <CardDescription>Campaigns that match your profile</CardDescription>
                     </div>
                     <Link href="/influencer/browse">
-                      <Button variant="default" size="sm" className="text-sm">
+                      <Button size="sm" className="text-sm bg-purple-700 hover:bg-purple-800 text-white">
                         View all
                       </Button>
                     </Link>
@@ -207,7 +207,7 @@ export default function InfluencerDashboard() {
                               </div>
                             </div>
                             <Link href={`/influencer/browse?highlight=${campaign.id}`}>
-                              <Button variant="default" size="sm">
+                              <Button size="sm" className="bg-purple-700 hover:bg-purple-800 text-white">
                                 Apply
                               </Button>
                             </Link>
@@ -218,7 +218,7 @@ export default function InfluencerDashboard() {
                       <div className="text-center py-8 text-muted-foreground">
                         <p>No recommended campaigns available</p>
                         <Link href="/influencer/browse">
-                          <Button variant="outline" className="mt-4">
+                          <Button className="mt-4 bg-purple-700 hover:bg-purple-800 text-white">
                             Browse All Campaigns
                           </Button>
                         </Link>
