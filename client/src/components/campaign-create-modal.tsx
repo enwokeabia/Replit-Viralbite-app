@@ -73,26 +73,35 @@ export function CampaignCreateModal({
     }
   }, [initialData]);
 
+  // Create a copy of initialData with the right types for the form
+  const defaultValues: FormValues = initialData 
+    ? {
+      title: initialData.title,
+      description: initialData.description,
+      imageUrl: initialData.imageUrl,
+      rewardAmount: initialData.rewardAmount,
+      rewardViews: initialData.rewardViews,
+      status: initialData.status,
+      // Convert nulls to empty string or undefined
+      location: initialData.location || "",
+      maxPayoutPerInfluencer: initialData.maxPayoutPerInfluencer || undefined,
+      maxBudget: initialData.maxBudget || undefined,
+    } 
+    : {
+      title: "",
+      description: "",
+      location: "",
+      imageUrl: "",
+      rewardAmount: 10,
+      rewardViews: 1000,
+      maxPayoutPerInfluencer: 100,
+      maxBudget: undefined,
+      status: "active",
+    };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData 
-      ? {
-        ...initialData,
-        // Convert nulls to undefined to match our form schema
-        maxPayoutPerInfluencer: initialData.maxPayoutPerInfluencer || undefined,
-        maxBudget: initialData.maxBudget || undefined,
-      } 
-      : {
-        title: "",
-        description: "",
-        location: "",
-        imageUrl: "",
-        rewardAmount: 10,
-        rewardViews: 1000,
-        maxPayoutPerInfluencer: 100,
-        maxBudget: undefined,
-        status: "active",
-      },
+    defaultValues,
   });
   
   // Handle file upload with compression for large images
