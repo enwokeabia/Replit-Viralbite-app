@@ -94,43 +94,31 @@ export default function RestaurantDashboard() {
                 />
               </div>
               
-              {/* Recent Activity and Performance Chart */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow p-4">
-                  <h2 className="text-lg font-semibold text-slate-800 mb-4">Campaign Performance</h2>
-                  <div className="h-64 flex items-center justify-center bg-slate-50 rounded">
-                    <div className="text-slate-400 text-center">
-                      <Megaphone className="h-10 w-10 mx-auto mb-2 text-muted" />
-                      <p>Performance chart would be displayed here</p>
-                    </div>
-                  </div>
+              {/* Recent Submissions */}
+              <div className="bg-white rounded-lg shadow p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-slate-800">Recent Submissions</h2>
                 </div>
                 
-                <div className="bg-white rounded-lg shadow p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-slate-800">Recent Submissions</h2>
+                {submissions && submissions.length > 0 ? (
+                  <div className="space-y-3">
+                    {submissions.slice(0, 6).map((submission) => {
+                      const campaign = campaigns?.find(c => c.id === submission.campaignId);
+                      return (
+                        <SubmissionCard 
+                          key={submission.id}
+                          submission={submission}
+                          campaignTitle={campaign?.title || "Unknown Campaign"}
+                          restaurantView={true}
+                        />
+                      );
+                    })}
                   </div>
-                  
-                  {submissions && submissions.length > 0 ? (
-                    <div className="space-y-3">
-                      {submissions.slice(0, 3).map((submission) => {
-                        const campaign = campaigns?.find(c => c.id === submission.campaignId);
-                        return (
-                          <SubmissionCard 
-                            key={submission.id}
-                            submission={submission}
-                            campaignTitle={campaign?.title || "Unknown Campaign"}
-                            restaurantView={true}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-10 text-muted-foreground">
-                      <p>No submissions yet</p>
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="text-center py-10 text-muted-foreground">
+                    <p>No submissions yet</p>
+                  </div>
+                )}
               </div>
             </>
           )}

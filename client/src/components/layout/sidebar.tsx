@@ -82,12 +82,7 @@ export function Sidebar({ className }: SidebarProps) {
         },
         {
           path: "/influencer/stats",
-          label: "My Stats",
-          icon: <LineChart size={18} />,
-        },
-        {
-          path: "/influencer/earnings",
-          label: "Earnings",
+          label: "Earnings & Stats",
           icon: <Wallet size={18} />,
         },
         {

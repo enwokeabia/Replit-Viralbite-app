@@ -41,8 +41,7 @@ function Router() {
       {/* Influencer Routes */}
       <ProtectedRoute path="/influencer/dashboard" component={InfluencerDashboard} />
       <ProtectedRoute path="/influencer/browse" component={BrowseCampaigns} />
-      <ProtectedRoute path="/influencer/stats" component={MyStats} />
-      <ProtectedRoute path="/influencer/earnings" component={Earnings} />
+      <ProtectedRoute path="/influencer/stats" component={Earnings} />
       <ProtectedRoute path="/influencer/profile" component={Profile} />
       <ProtectedRoute path="/influencer/settings" component={Settings} />
       <ProtectedRoute path="/influencer/private-invitations" component={InfluencerPrivateInvitations} />

@@ -69,11 +69,6 @@ export function MobileNav() {
         },
         {
           path: "/influencer/stats",
-          label: "Stats",
-          icon: <LineChart size={20} />,
-        },
-        {
-          path: "/influencer/earnings",
           label: "Earnings",
           icon: <Wallet size={20} />,
         },

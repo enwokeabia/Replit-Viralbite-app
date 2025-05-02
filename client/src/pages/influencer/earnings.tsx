@@ -4,11 +4,10 @@ import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Submission, Campaign } from "@shared/schema";
-import { Loader2, DollarSign, ArrowUpRight, TrendingUp, LineChart, Calendar } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Loader2, DollarSign, TrendingUp, Eye, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Progress } from "@/components/ui/progress";
+import { SubmissionCard } from "@/components/submission-card";
 
 // Helper function to format date
 function formatDate(dateString: string | Date) {
@@ -41,38 +40,52 @@ export default function Earnings() {
 
   const isLoading = isSubmissionsLoading || isCampaignsLoading || isStatsLoading;
 
-  // Calculate earnings metrics
+  // Calculate performance metrics
   const approvedSubmissions = submissions?.filter(s => s.status === "approved") || [];
+  const pendingSubmissions = submissions?.filter(s => s.status === "pending") || [];
+  const viewToEarningRatio = stats?.totalViews && stats?.totalViews > 0
+    ? stats.totalEarnings / stats.totalViews * 1000 // earnings per 1000 views
+    : 0;
   
   // Sort submissions by earnings (descending) and get top 5
   const topEarningSubmissions = [...(approvedSubmissions || [])]
     .sort((a, b) => b.earnings - a.earnings)
     .slice(0, 5);
   
-  // Calculate total potential earnings (including pending submissions)
-  const pendingSubmissions = submissions?.filter(s => s.status === "pending") || [];
-  const potentialEarnings = pendingSubmissions.reduce((sum, s) => {
-    const campaign = campaigns?.find(c => c.id === s.campaignId);
-    // Assume average views for potential calculations
-    const potentialViews = approvedSubmissions.length 
-      ? approvedSubmissions.reduce((sum, s) => sum + s.views, 0) / approvedSubmissions.length
-      : 5000; // Fallback to 5000 if no approved submissions
-    
-    if (!campaign) return sum;
-    return sum + (potentialViews / campaign.rewardViews) * campaign.rewardAmount;
-  }, 0);
+  // Calculate campaign-specific performance
+  const campaignPerformance = submissions && campaigns
+    ? campaigns
+        .filter(campaign => submissions.some(s => s.campaignId === campaign.id))
+        .map(campaign => {
+          const campaignSubmissions = submissions.filter(s => s.campaignId === campaign.id);
+          const approvedSubs = campaignSubmissions.filter(s => s.status === "approved");
+          const totalViews = approvedSubs.reduce((sum, s) => sum + s.views, 0);
+          const totalEarnings = approvedSubs.reduce((sum, s) => sum + s.earnings, 0);
+          
+          return {
+            id: campaign.id,
+            title: campaign.title,
+            submissions: campaignSubmissions.length,
+            approvedSubmissions: approvedSubs.length,
+            views: totalViews,
+            earnings: totalEarnings,
+            viewsPerSubmission: approvedSubs.length ? totalViews / approvedSubs.length : 0
+          };
+        })
+        .sort((a, b) => b.earnings - a.views)
+    : [];
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
       <Sidebar className="hidden md:flex" />
       
       <div className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
-        <Header title="Earnings" />
+        <Header title="Earnings & Stats" />
         
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-800">Earnings</h1>
-            <p className="text-slate-500">Track your performance-based income from all campaigns</p>
+            <h1 className="text-2xl font-bold text-slate-800">Earnings & Stats</h1>
+            <p className="text-slate-500">Track your performance and earnings from all campaigns</p>
           </div>
           
           {isLoading ? (
@@ -81,43 +94,41 @@ export default function Earnings() {
             </div>
           ) : (
             <>
-              {/* Main Earnings Card */}
-              <Card className="mb-6">
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Total Earnings</p>
-                          <h3 className="text-4xl font-bold mt-1">${stats?.totalEarnings?.toFixed(2) || '0.00'}</h3>
-                        </div>
-                        
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                          <DollarSign className="h-6 w-6 text-green-600" />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-slate-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium">Earnings Overview</p>
-                      <div className="space-y-3 mt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Approved Submissions</span>
-                          <span className="font-medium">{approvedSubmissions.length}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Total Views</span>
-                          <span className="font-medium">{stats?.totalViews?.toLocaleString() || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Pending Submissions</span>
-                          <span className="font-medium">{pendingSubmissions.length}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Main Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card className="md:col-span-2">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-lg font-medium">Total Earnings</CardTitle>
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">${stats?.totalEarnings?.toFixed(2) || '0.00'}</div>
+                    <p className="text-sm text-muted-foreground">Based on {approvedSubmissions.length} approved submissions</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stats?.totalViews?.toLocaleString() || 0}</div>
+                    <p className="text-xs text-muted-foreground">Across all submissions</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Earnings Rate</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">${viewToEarningRatio.toFixed(2)}</div>
+                    <p className="text-xs text-muted-foreground">Per 1,000 views</p>
+                  </CardContent>
+                </Card>
+              </div>
               
               {/* Top Earning Submissions */}
               <Card className="mb-6">
@@ -183,7 +194,51 @@ export default function Earnings() {
                 </CardContent>
               </Card>
               
-
+              {/* Campaign Performance Table */}
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Campaign Performance</CardTitle>
+                  <CardDescription>View metrics for all your campaign submissions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {campaignPerformance.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left text-sm font-medium text-muted-foreground p-2 pl-0">Campaign</th>
+                            <th className="text-right text-sm font-medium text-muted-foreground p-2">Submissions</th>
+                            <th className="text-right text-sm font-medium text-muted-foreground p-2">Approved</th>
+                            <th className="text-right text-sm font-medium text-muted-foreground p-2">Views</th>
+                            <th className="text-right text-sm font-medium text-muted-foreground p-2">Earnings</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {campaignPerformance.map(campaign => (
+                            <tr key={campaign.id} className="border-b">
+                              <td className="text-sm p-2 pl-0">{campaign.title}</td>
+                              <td className="text-sm text-right p-2">{campaign.submissions}</td>
+                              <td className="text-sm text-right p-2">{campaign.approvedSubmissions}</td>
+                              <td className="text-sm text-right p-2">{campaign.views.toLocaleString()}</td>
+                              <td className="text-sm text-right p-2">${campaign.earnings.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Camera className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                      <p>No submissions data available</p>
+                      <Link href="/influencer/browse">
+                        <Button variant="outline" className="mt-4">
+                          Browse Campaigns
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </>
           )}
         </main>
