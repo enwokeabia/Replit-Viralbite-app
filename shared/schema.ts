@@ -61,6 +61,7 @@ export const submissions = pgTable("submissions", {
   notes: text("notes"),
   status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull(),
   views: integer("views").default(0).notNull(),
+  likes: integer("likes").default(0).notNull(),
   earnings: doublePrecision("earnings").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -68,6 +69,7 @@ export const submissions = pgTable("submissions", {
 export const insertSubmissionSchema = createInsertSchema(submissions).omit({
   id: true,
   views: true,
+  likes: true,
   earnings: true,
   createdAt: true,
 });
@@ -75,10 +77,11 @@ export const insertSubmissionSchema = createInsertSchema(submissions).omit({
 export type InsertSubmission = z.infer<typeof insertSubmissionSchema>;
 export type Submission = typeof submissions.$inferSelect;
 
-// ViewUpdate schema for updating views and calculating earnings
+// ViewUpdate schema for updating views, likes and calculating earnings
 export const viewUpdateSchema = z.object({
   submissionId: z.number(),
   views: z.number().min(0),
+  likes: z.number().min(0).optional(),
 });
 
 export type ViewUpdate = z.infer<typeof viewUpdateSchema>;
@@ -116,6 +119,7 @@ export const privateSubmissions = pgTable("private_submissions", {
   notes: text("notes"),
   status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull(),
   views: integer("views").default(0).notNull(),
+  likes: integer("likes").default(0).notNull(),
   earnings: doublePrecision("earnings").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
