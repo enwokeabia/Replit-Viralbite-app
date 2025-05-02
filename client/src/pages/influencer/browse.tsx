@@ -194,10 +194,7 @@ export default function BrowseCampaigns() {
                   : "There are no active campaigns at the moment"}
               </p>
               {categoryFilter !== "all" && (
-                <Button 
-                  className="bg-purple-700 hover:bg-purple-800 text-white"
-                  onClick={() => setCategoryFilter("all")}
-                >
+                <Button variant="outline" onClick={() => setCategoryFilter("all")}>
                   Clear Category Filter
                 </Button>
               )}

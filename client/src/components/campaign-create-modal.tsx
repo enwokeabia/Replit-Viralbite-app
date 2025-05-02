@@ -482,11 +482,7 @@ export function CampaignCreateModal({
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="bg-purple-700 hover:bg-purple-800 text-white"
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting
                   ? isEditing
                     ? "Updating..."
