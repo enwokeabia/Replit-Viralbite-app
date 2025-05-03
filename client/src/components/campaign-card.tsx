@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash, Eye, Users } from "lucide-react";
+import { Edit2, Trash, Eye, Users, MapPin } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,7 +64,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-md transition-all duration-200 border-slate-200">
+      <Card className="overflow-hidden hover:shadow-md transition-all duration-200 border-slate-200 hover:border-purple-200">
         <div className="h-40 bg-slate-200 relative">
           {campaign.imageUrl ? (
             <div
@@ -72,8 +72,12 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
               style={{ backgroundImage: `url(${campaign.imageUrl})` }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-primary/10">
-              <Trash className="h-10 w-10 text-muted" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-50">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+              </svg>
             </div>
           )}
           <div className="absolute top-2 right-2">
@@ -95,17 +99,21 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
           </p>
           
           <div className="flex items-center justify-between text-sm mb-4">
-            <span className="text-muted-foreground flex items-center">
-              <Users className="h-4 w-4 mr-1" /> 0 submissions
+            <span className="text-purple-700 flex items-center">
+              <Users className="h-4 w-4 mr-1 text-purple-600" /> 0 submissions
             </span>
-            <span className="text-muted-foreground flex items-center">
-              <Eye className="h-4 w-4 mr-1" /> 0 views
+            <span className="text-violet-700 flex items-center">
+              <Eye className="h-4 w-4 mr-1 text-violet-600" /> 0 views
             </span>
           </div>
           
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              ${campaign.rewardAmount} per {campaign.rewardViews} views
+            <span className="text-xs font-medium flex items-center">
+              <span className="mr-1 text-green-600">$</span>
+              <span className="text-slate-700">{campaign.rewardAmount}</span>
+              <span className="mx-1 text-slate-500">per</span>
+              <span className="text-slate-700">{campaign.rewardViews}</span>
+              <span className="ml-1 text-slate-500">views</span>
             </span>
             
             {viewType === "restaurant" ? (
@@ -113,7 +121,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-primary"
+                  className="text-muted-foreground hover:text-purple-700"
                   onClick={() => onEdit && onEdit(campaign)}
                 >
                   <Edit2 className="h-4 w-4" />
@@ -125,7 +133,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-muted-foreground hover:text-destructive"
+                      className="text-muted-foreground hover:text-red-600"
                     >
                       <Trash className="h-4 w-4" />
                       <span className="sr-only">Delete campaign</span>
@@ -143,9 +151,17 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
                       <AlertDialogAction
                         onClick={handleDelete}
                         disabled={isDeleting}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-sm"
                       >
-                        {isDeleting ? "Deleting..." : "Delete"}
+                        {isDeleting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Deleting...
+                          </>
+                        ) : "Delete"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
