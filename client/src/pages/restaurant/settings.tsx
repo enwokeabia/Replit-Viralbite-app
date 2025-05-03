@@ -186,7 +186,7 @@ export default function RestaurantSettings() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Sidebar className="hidden md:flex" />
       
       <div className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
@@ -195,25 +195,25 @@ export default function RestaurantSettings() {
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <div className="flex flex-col gap-6 max-w-4xl mx-auto">
             <Tabs defaultValue="restaurant" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="restaurant" className="flex items-center gap-2">
+              <TabsList className="mb-4 p-1 bg-gradient-to-r from-slate-100 to-white rounded-xl shadow-sm">
+                <TabsTrigger value="restaurant" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
                   <Store size={14} />
                   <span>Restaurant Profile</span>
                 </TabsTrigger>
-                <TabsTrigger value="account" className="flex items-center gap-2">
+                <TabsTrigger value="account" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
                   <LockKeyhole size={14} />
                   <span>Account</span>
                 </TabsTrigger>
-                <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">
                   <Bell size={14} />
                   <span>Notifications</span>
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="restaurant">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Restaurant Profile</CardTitle>
+                <Card className="border border-slate-200 shadow-md overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-white border-b border-slate-100">
+                    <CardTitle className="text-xl bg-gradient-to-br from-purple-700 to-purple-500 text-transparent bg-clip-text">Restaurant Profile</CardTitle>
                     <CardDescription>
                       Update your restaurant details and information
                     </CardDescription>
@@ -347,9 +347,9 @@ export default function RestaurantSettings() {
               </TabsContent>
 
               <TabsContent value="account">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Account Settings</CardTitle>
+                <Card className="border border-slate-200 shadow-md overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-white border-b border-slate-100">
+                    <CardTitle className="text-xl bg-gradient-to-br from-purple-700 to-purple-500 text-transparent bg-clip-text">Account Settings</CardTitle>
                     <CardDescription>
                       Update your account information and preferences
                     </CardDescription>
@@ -427,9 +427,9 @@ export default function RestaurantSettings() {
               </TabsContent>
 
               <TabsContent value="notifications">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Notification Preferences</CardTitle>
+                <Card className="border border-slate-200 shadow-md overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-white border-b border-slate-100">
+                    <CardTitle className="text-xl bg-gradient-to-br from-purple-700 to-purple-500 text-transparent bg-clip-text">Notification Preferences</CardTitle>
                     <CardDescription>
                       Choose how and when you receive notifications
                     </CardDescription>
@@ -442,9 +442,9 @@ export default function RestaurantSettings() {
                           control={notificationForm.control}
                           name="emailNotifications"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 hover:border-purple-200 transition-all duration-200 bg-white shadow-sm">
                               <div className="space-y-0.5">
-                                <FormLabel className="text-base">Email Notifications</FormLabel>
+                                <FormLabel className="text-base font-medium">Email Notifications</FormLabel>
                                 <FormDescription>
                                   Receive email notifications about your account activity
                                 </FormDescription>
@@ -453,6 +453,7 @@ export default function RestaurantSettings() {
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
+                                  className="data-[state=checked]:bg-gradient-to-r from-purple-600 to-purple-500"
                                 />
                               </FormControl>
                             </FormItem>
