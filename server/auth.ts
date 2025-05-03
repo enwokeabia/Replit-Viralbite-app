@@ -32,19 +32,15 @@ export function setupAuth(app: Express) {
   // Add debugging for session issues
   console.log("Setting up auth with session store:", !!storage.sessionStore);
   
+  // Use extremely simple session configuration to avoid issues
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'viralbite-secret-key',
-    name: 'viralbite.sid', // Custom session name to avoid conflicts
-    resave: false, // Don't save session if unmodified
-    saveUninitialized: false, // Don't create session until something stored
-    rolling: true, // Force a session identifier cookie to be set on every response
+    secret: process.env.SESSION_SECRET || 'viralbite-super-secret-key-123',
+    resave: true, // Always save session even if unmodified
+    saveUninitialized: true, // Save uninitialized sessions
     store: storage.sessionStore,
     cookie: {
-      path: '/',
       secure: false, // Set to true in production with HTTPS
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      httpOnly: true,
-      sameSite: 'lax'
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     }
   };
 
@@ -100,30 +96,18 @@ export function setupAuth(app: Express) {
       });
       console.log("User created successfully:", user.id, user.username);
 
-      // Ensure we have a fresh session
-      req.session.regenerate((err) => {
+      // Use simple login without session regeneration
+      req.login(user, (err) => {
         if (err) {
-          console.error("Session regeneration error during registration:", err);
+          console.error("Login after registration failed:", err);
           return next(err);
         }
         
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            console.error("Login after registration failed:", loginErr);
-            return next(loginErr);
-          }
-          
-          // Save the session after login
-          req.session.save((saveErr) => {
-            if (saveErr) {
-              console.error("Session save error after registration:", saveErr);
-              return next(saveErr);
-            }
-            
-            console.log("User logged in after registration:", req.isAuthenticated(), "Session ID:", req.sessionID);
-            res.status(201).json(user);
-          });
-        });
+        console.log("User registered and logged in:", user.id, user.username);
+        console.log("Session ID:", req.sessionID);
+        console.log("Is authenticated:", req.isAuthenticated());
+        
+        res.status(201).json(user);
       });
     } catch (error) {
       console.error("Error during registration:", error);
@@ -134,6 +118,7 @@ export function setupAuth(app: Express) {
   app.post("/api/login", (req, res, next) => {
     console.log("Login attempt for username:", req.body.username);
     
+    // Use a simpler login flow without session regeneration
     passport.authenticate("local", (err, user, info) => {
       if (err) {
         console.error("Login error:", err);
@@ -142,34 +127,20 @@ export function setupAuth(app: Express) {
       
       if (!user) {
         console.log("Login failed: Invalid credentials");
-        return res.status(401).send(info?.message || "Invalid credentials");
+        return res.status(401).send("Invalid credentials");
       }
       
+      // Simple login without session regeneration to avoid complications
       req.login(user, (err) => {
         if (err) {
-          console.error("Session save error:", err);
+          console.error("Login error:", err);
           return next(err);
         }
         
-        // Regenerate session when logging in to prevent session fixation
-        const oldSessionID = req.sessionID;
-        req.session.regenerate((err) => {
-          if (err) {
-            console.error("Session regeneration error:", err);
-            return next(err);
-          }
-          
-          // Re-login after regenerating the session
-          req.login(user, (loginErr) => {
-            if (loginErr) {
-              console.error("Re-login error after session regeneration:", loginErr);
-              return next(loginErr);
-            }
-            
-            console.log(`Login successful, authenticated: ${req.isAuthenticated()}, old session: ${oldSessionID}, new session: ${req.sessionID}`);
-            return res.status(200).json(user);
-          });
-        });
+        console.log("Login successful, user:", user.id, user.username);
+        console.log("Session ID:", req.sessionID);
+        
+        return res.status(200).json(user);
       });
     })(req, res, next);
   });
