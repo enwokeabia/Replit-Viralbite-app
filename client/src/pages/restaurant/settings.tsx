@@ -227,9 +227,13 @@ export default function RestaurantSettings() {
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Restaurant Name</FormLabel>
+                              <FormLabel className="font-medium text-slate-800">Restaurant Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Your Restaurant Name" {...field} />
+                                <Input 
+                                  placeholder="Your Restaurant Name" 
+                                  {...field} 
+                                  className="border-slate-300 focus:border-purple-300 focus:ring-purple-200 transition-all duration-200"
+                                />
                               </FormControl>
                               <FormDescription>
                                 This is how your restaurant will appear to influencers
@@ -244,13 +248,14 @@ export default function RestaurantSettings() {
                           name="description"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Restaurant Description</FormLabel>
+                              <FormLabel className="font-medium text-slate-800">Restaurant Description</FormLabel>
                               <FormControl>
                                 <Textarea 
                                   placeholder="Tell influencers about your restaurant" 
                                   rows={4}
                                   {...field} 
                                   value={field.value || ""}
+                                  className="border-slate-300 focus:border-purple-300 focus:ring-purple-200 transition-all duration-200 resize-none"
                                 />
                               </FormControl>
                               <FormDescription>
@@ -336,8 +341,17 @@ export default function RestaurantSettings() {
                         </div>
 
                         <div className="pt-4">
-                          <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Saving..." : "Save Restaurant Profile"}
+                          <Button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className="bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white shadow-md transition-all duration-200"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                              </>
+                            ) : "Save Restaurant Profile"}
                           </Button>
                         </div>
                       </form>
@@ -363,9 +377,13 @@ export default function RestaurantSettings() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email Address</FormLabel>
+                              <FormLabel className="font-medium text-slate-800">Email Address</FormLabel>
                               <FormControl>
-                                <Input placeholder="youremail@example.com" {...field} />
+                                <Input 
+                                  placeholder="youremail@example.com" 
+                                  {...field} 
+                                  className="border-slate-300 focus:border-purple-300 focus:ring-purple-200 transition-all duration-200"
+                                />
                               </FormControl>
                               <FormDescription>
                                 This is the email used for important account notifications
@@ -416,8 +434,17 @@ export default function RestaurantSettings() {
                         </div>
 
                         <div className="pt-4">
-                          <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Saving..." : "Save Account Settings"}
+                          <Button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className="bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white shadow-md transition-all duration-200"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                              </>
+                            ) : "Save Account Settings"}
                           </Button>
                         </div>
                       </form>
@@ -464,9 +491,9 @@ export default function RestaurantSettings() {
                           control={notificationForm.control}
                           name="submissionAlerts"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 hover:border-purple-200 transition-all duration-200 bg-white shadow-sm">
                               <div className="space-y-0.5">
-                                <FormLabel className="text-base">New Submission Alerts</FormLabel>
+                                <FormLabel className="text-base font-medium">New Submission Alerts</FormLabel>
                                 <FormDescription>
                                   Get notified when influencers submit content for your campaigns
                                 </FormDescription>
@@ -475,6 +502,7 @@ export default function RestaurantSettings() {
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
+                                  className="data-[state=checked]:bg-gradient-to-r from-purple-600 to-purple-500"
                                 />
                               </FormControl>
                             </FormItem>
@@ -485,9 +513,9 @@ export default function RestaurantSettings() {
                           control={notificationForm.control}
                           name="paymentNotifications"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 hover:border-purple-200 transition-all duration-200 bg-white shadow-sm">
                               <div className="space-y-0.5">
-                                <FormLabel className="text-base">Payment Notifications</FormLabel>
+                                <FormLabel className="text-base font-medium">Payment Notifications</FormLabel>
                                 <FormDescription>
                                   Receive notifications about campaign payments and billing
                                 </FormDescription>
@@ -496,6 +524,7 @@ export default function RestaurantSettings() {
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
+                                  className="data-[state=checked]:bg-gradient-to-r from-purple-600 to-purple-500"
                                 />
                               </FormControl>
                             </FormItem>
@@ -503,8 +532,17 @@ export default function RestaurantSettings() {
                         />
 
                         <div className="pt-4">
-                          <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Saving..." : "Save Notification Settings"}
+                          <Button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                            className="bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white shadow-md transition-all duration-200"
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving...
+                              </>
+                            ) : "Save Notification Settings"}
                           </Button>
                         </div>
                       </form>
