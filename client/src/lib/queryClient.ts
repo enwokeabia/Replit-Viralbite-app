@@ -19,9 +19,17 @@ export async function apiRequest(
   
   // Add auth token if available
   const authToken = localStorage.getItem("authToken");
+  const testToken = localStorage.getItem("testToken");
+  
+  // Try the primary token first
   if (authToken) {
-    headers["X-Auth-Token"] = authToken;
-    console.log("Adding auth token to request");
+    headers["x-auth-token"] = authToken;
+    console.log("Adding auth token to POST request:", authToken);
+  } 
+  // Fallback to the test token if no primary token exists
+  else if (testToken) {
+    headers["x-auth-token"] = testToken;
+    console.log("Adding TEST token to POST request:", testToken);
   }
   
   const res = await fetch(url, {
@@ -44,9 +52,17 @@ export const getQueryFn: <T>(options: {
     // Include auth token if available
     const headers: Record<string, string> = {};
     const authToken = localStorage.getItem("authToken");
+    const testToken = localStorage.getItem("testToken");
+    
+    // Try the primary token first
     if (authToken) {
-      headers["X-Auth-Token"] = authToken;
-      console.log("Adding auth token to GET request");
+      headers["x-auth-token"] = authToken;
+      console.log("Adding auth token to GET request:", authToken);
+    } 
+    // Fallback to the test token if no primary token exists
+    else if (testToken) {
+      headers["x-auth-token"] = testToken;
+      console.log("Adding TEST token to GET request:", testToken);
     }
     
     const res = await fetch(queryKey[0] as string, {

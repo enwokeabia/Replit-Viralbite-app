@@ -7,6 +7,11 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 
+// Declare the global namespace to match routes.ts
+declare global {
+  var authTokens: Map<string, number>;
+}
+
 declare global {
   namespace Express {
     interface User extends SelectUser {}
@@ -222,6 +227,35 @@ export function setupAuth(app: Express) {
     console.log("GET /api/user - Session ID:", req.sessionID);
     console.log("GET /api/user - Is Authenticated:", req.isAuthenticated());
     console.log("GET /api/user - Cookies:", req.headers.cookie);
+    console.log("GET /api/user - All Headers:", JSON.stringify(req.headers));
+    
+    // Check for token in header for alternative authentication
+    const authToken = req.headers['x-auth-token'] as string;
+    if (authToken && typeof global.authTokens !== 'undefined' && global.authTokens.has(authToken)) {
+      const userId = global.authTokens.get(authToken);
+      console.log("GET /api/user - Token auth detected - User ID:", userId);
+      
+      if (typeof userId === 'undefined') {
+        console.error("GET /api/user - Token exists but userId is undefined");
+        return res.sendStatus(401);
+      }
+      
+      // Fetch the user by ID
+      storage.getUser(userId).then(user => {
+        if (user) {
+          console.log("GET /api/user - Token user found:", user.id, user.username);
+          return res.json(user);
+        } else {
+          console.log("GET /api/user - Token auth, but user not found");
+          return res.sendStatus(401);
+        }
+      }).catch(err => {
+        console.error("GET /api/user - Token auth error:", err);
+        return res.status(500).send("Server error");
+      });
+      
+      return;
+    }
     
     if (req.isAuthenticated()) {
       console.log("GET /api/user - User:", req.user.id, req.user.username);
