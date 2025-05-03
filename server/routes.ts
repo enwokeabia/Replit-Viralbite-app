@@ -46,6 +46,10 @@ function requireInfluencerRole(req: Request, res: Response, next: Function) {
 
 // Helper function to ensure user has admin role
 function requireAdminRole(req: Request, res: Response, next: Function) {
+  console.log("Admin check - authenticated:", req.isAuthenticated());
+  console.log("Admin check - user:", req.user);
+  console.log("Admin check - role:", req.user?.role);
+  
   if (!req.isAuthenticated() || (req.user as User).role !== "admin") {
     return res.status(403).send("Forbidden: Admin role required");
   }
