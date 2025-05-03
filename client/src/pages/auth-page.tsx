@@ -71,11 +71,11 @@ export default function AuthPage() {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-100">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-purple-50">
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg">
+        <div className="bg-white p-8 rounded-lg shadow-xl border border-purple-100">
           <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-purple-500 text-transparent bg-clip-text">ViralBite</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-900 to-purple-600 text-transparent bg-clip-text">ViralBite</h1>
             <p className="text-muted-foreground">
               Performance-Based Restaurant-Influencer Marketing
             </p>
@@ -117,17 +117,25 @@ export default function AuthPage() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white shadow-md"
                     disabled={loginMutation.isPending}
                   >
-                    {loginMutation.isPending ? "Logging in..." : "Log in"}
+                    {loginMutation.isPending ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Logging in...
+                      </>
+                    ) : "Log in"}
                   </Button>
                 </div>
               </form>
 
               <div className="mt-4 text-center">
                 <button
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text hover:from-purple-900 hover:to-purple-700 font-medium"
                   onClick={() => setAuthMode("register")}
                 >
                   Don't have an account? Sign up
@@ -206,7 +214,7 @@ export default function AuthPage() {
                       }
                       className="grid grid-cols-2 gap-4 pt-2"
                     >
-                      <div className="border rounded-lg p-4 cursor-pointer hover:border-primary relative">
+                      <div className="border rounded-lg p-4 cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 relative shadow-sm">
                         <RadioGroupItem
                           value="restaurant"
                           id="restaurant"
@@ -216,13 +224,13 @@ export default function AuthPage() {
                           htmlFor="restaurant"
                           className="flex flex-col items-center cursor-pointer"
                         >
-                          <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mb-2">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-800 to-purple-600 text-white rounded-full flex items-center justify-center mb-2 shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-store"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2 2 0 0 1-2-2v0"/><path d="M18 12v0a2 2 0 0 1-2-2v0"/><path d="M14 12v0a2 2 0 0 1-2-2v0"/><path d="M10 12v0a2 2 0 0 1-2-2v0"/><path d="M6 12v0a2 2 0 0 1-2-2v0"/><path d="M2 7v3a2 2 0 0 0 2 2v0"/></svg>
                           </div>
-                          <span className="text-sm font-medium">Restaurant</span>
+                          <span className="text-sm font-medium bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">Restaurant</span>
                         </Label>
                       </div>
-                      <div className="border rounded-lg p-4 cursor-pointer hover:border-primary relative">
+                      <div className="border rounded-lg p-4 cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all duration-200 relative shadow-sm">
                         <RadioGroupItem
                           value="influencer"
                           id="influencer"
@@ -232,10 +240,10 @@ export default function AuthPage() {
                           htmlFor="influencer"
                           className="flex flex-col items-center cursor-pointer"
                         >
-                          <div className="w-12 h-12 bg-accent text-accent-foreground rounded-full flex items-center justify-center mb-2">
+                          <div className="w-12 h-12 bg-gradient-to-br from-pink-600 to-purple-700 text-white rounded-full flex items-center justify-center mb-2 shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                           </div>
-                          <span className="text-sm font-medium">Influencer</span>
+                          <span className="text-sm font-medium bg-gradient-to-r from-pink-600 to-purple-600 text-transparent bg-clip-text">Influencer</span>
                         </Label>
                       </div>
                     </RadioGroup>
@@ -248,17 +256,25 @@ export default function AuthPage() {
 
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white shadow-md"
                     disabled={registerMutation.isPending}
                   >
-                    {registerMutation.isPending ? "Creating account..." : "Create Account"}
+                    {registerMutation.isPending ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating account...
+                      </>
+                    ) : "Create Account"}
                   </Button>
                 </div>
               </form>
 
               <div className="mt-4 text-center">
                 <button
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text hover:from-purple-900 hover:to-purple-700 font-medium"
                   onClick={() => setAuthMode("login")}
                 >
                   Already have an account? Log in
@@ -268,7 +284,7 @@ export default function AuthPage() {
           )}
         </div>
 
-        <Card className="p-8 bg-gradient-to-br from-purple-800 to-purple-600 text-white hidden md:block">
+        <Card className="p-8 bg-gradient-to-br from-purple-900 to-purple-700 text-white hidden md:block shadow-xl">
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">Amplify Your Restaurant's Impact</h2>
             <p className="text-lg opacity-90">
