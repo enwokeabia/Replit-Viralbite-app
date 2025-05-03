@@ -60,7 +60,21 @@ export default function AuthPage() {
   };
 
   const handleRegister = (data: RegisterFormValues) => {
-    registerMutation.mutate(data);
+    registerMutation.mutate(data, {
+      onSuccess: () => {
+        // After successful registration, login with the same credentials
+        loginMutation.mutate({
+          username: data.username,
+          password: data.password
+        });
+        
+        toast({
+          title: "Registration successful",
+          description: "You've been logged in automatically.",
+          variant: "default",
+        });
+      }
+    });
   };
 
   // Redirect if already logged in
