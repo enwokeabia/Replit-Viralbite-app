@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import { ProtectedRoute } from "./lib/protected-route";
+import { AdminProtectedRoute } from "./lib/admin-protected-route";
 import { AuthProvider } from "@/hooks/use-auth";
 
 // Influencer pages
@@ -25,6 +26,10 @@ import Submissions from "@/pages/restaurant/submissions";
 import Analytics from "@/pages/restaurant/analytics";
 import RestaurantPrivateInvitations from "@/pages/restaurant/private-invitations";
 import RestaurantSettings from "@/pages/restaurant/settings";
+
+// Admin pages
+import AdminDashboard from "@/pages/admin/dashboard";
+import AdminLogin from "@/pages/admin/login";
 
 function Router() {
   return (
@@ -47,6 +52,10 @@ function Router() {
       <ProtectedRoute path="/influencer/profile" component={Profile} />
       <ProtectedRoute path="/influencer/settings" component={Settings} />
       <ProtectedRoute path="/influencer/private-invitations" component={InfluencerPrivateInvitations} />
+      
+      {/* Admin Routes */}
+      <Route path="/admin/login" component={AdminLogin} />
+      <AdminProtectedRoute path="/admin" component={AdminDashboard} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

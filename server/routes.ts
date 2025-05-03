@@ -808,7 +808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // This is a simplified approach - we need to enhance IStorage to include this method for better performance
   app.get("/api/admin/private-submissions", requireAdminRole, async (req, res) => {
     try {
-      let allPrivateSubmissions = [];
+      let allPrivateSubmissions: PrivateSubmission[] = [];
       
       // Get all private invitations
       const users = await Promise.all(
