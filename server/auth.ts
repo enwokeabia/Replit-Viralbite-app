@@ -29,6 +29,9 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Add debugging for session issues
+  console.log("Setting up auth with session store:", !!storage.sessionStore);
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'viralbite-secret-key',
     resave: true,
@@ -37,6 +40,8 @@ export function setupAuth(app: Express) {
     cookie: {
       secure: false, // Set to true in production with HTTPS
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      sameSite: 'lax'
     }
   };
 
