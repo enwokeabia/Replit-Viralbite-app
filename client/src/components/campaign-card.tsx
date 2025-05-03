@@ -64,7 +64,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
 
   return (
     <>
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden hover:shadow-md transition-all duration-200 border-slate-200">
         <div className="h-40 bg-slate-200 relative">
           {campaign.imageUrl ? (
             <div

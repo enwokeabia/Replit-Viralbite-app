@@ -113,8 +113,8 @@ export function Sidebar({ className }: SidebarProps) {
         className
       )}
     >
-      <div className="p-4 border-b border-border">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-700 to-purple-500 text-transparent bg-clip-text">ViralBite</h1>
+      <div className="p-4 border-b border-border bg-gradient-to-r from-slate-50 to-white">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">ViralBite</h1>
       </div>
 
       <div className="p-4">
@@ -141,8 +141,8 @@ export function Sidebar({ className }: SidebarProps) {
                     className={cn(
                       "flex items-center space-x-3 px-3 py-2 rounded-md transition-colors",
                       location === item.path
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                        ? "bg-gradient-to-r from-purple-800/15 to-purple-600/10 text-purple-800 font-medium shadow-sm border border-purple-100"
+                        : "hover:bg-slate-50 text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {item.icon}

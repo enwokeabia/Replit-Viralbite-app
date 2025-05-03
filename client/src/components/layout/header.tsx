@@ -44,7 +44,7 @@ export function Header({ title, description }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-border p-4 flex items-center justify-between md:justify-end">
+    <header className="bg-gradient-to-r from-white to-slate-50 border-b border-border p-4 flex items-center justify-between md:justify-end shadow-sm">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="md:hidden">
@@ -58,7 +58,7 @@ export function Header({ title, description }: HeaderProps) {
       </Sheet>
 
       <div className="md:hidden flex-1 mx-4">
-        <h1 className="text-lg font-semibold truncate">{title}</h1>
+        <h1 className="text-lg font-semibold truncate bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">{title}</h1>
       </div>
       
       <div className="flex items-center">
