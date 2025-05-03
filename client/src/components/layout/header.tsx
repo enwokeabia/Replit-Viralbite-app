@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Menu, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/layout/sidebar";
+import { useLocation } from "wouter";
 
 interface HeaderProps {
   title: string;
@@ -20,9 +20,11 @@ interface HeaderProps {
 
 export function Header({ title, description }: HeaderProps) {
   const { user, logoutMutation } = useAuth();
+  const [, navigate] = useLocation();
   
   if (!user) return null;
 
+  const isRestaurant = user.role === "restaurant";
   const userInitials = user.name
     .split(" ")
     .map((n) => n[0])
@@ -31,6 +33,14 @@ export function Header({ title, description }: HeaderProps) {
 
   const handleLogout = () => {
     logoutMutation.mutate();
+  };
+  
+  const handleSettingsClick = () => {
+    if (isRestaurant) {
+      navigate("/restaurant/settings");
+    } else {
+      navigate("/influencer/settings");
+    }
   };
 
   return (
@@ -63,8 +73,7 @@ export function Header({ title, description }: HeaderProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSettingsClick}>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
