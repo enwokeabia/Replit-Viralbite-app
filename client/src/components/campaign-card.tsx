@@ -94,9 +94,15 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
 
         <CardContent className="p-4">
           <h3 className="text-lg font-semibold mb-1 bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">{campaign.title}</h3>
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
             {campaign.description}
           </p>
+          {campaign.location && (
+            <div className="flex items-center mb-2 text-xs text-violet-600">
+              <MapPin className="h-3 w-3 mr-1" />
+              <span>{campaign.location}</span>
+            </div>
+          )}
           
           <div className="flex items-center justify-between text-sm mb-4">
             <span className="text-purple-700 flex items-center">
