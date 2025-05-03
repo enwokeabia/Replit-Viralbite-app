@@ -2,7 +2,9 @@ import { users, type User, type InsertUser,
   campaigns, type Campaign, type InsertCampaign, 
   submissions, type Submission, type InsertSubmission,
   privateInvitations, type PrivateInvitation, type InsertPrivateInvitation,
-  privateSubmissions, type PrivateSubmission, type InsertPrivateSubmission
+  privateSubmissions, type PrivateSubmission, type InsertPrivateSubmission,
+  performanceMetrics, type PerformanceMetric, type InsertPerformanceMetric,
+  privatePerformanceMetrics, type PrivatePerformanceMetric, type InsertPrivatePerformanceMetric
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -50,6 +52,16 @@ export interface IStorage {
   createPrivateSubmission(submission: InsertPrivateSubmission): Promise<PrivateSubmission>;
   updatePrivateSubmission(id: number, submission: Partial<PrivateSubmission>): Promise<PrivateSubmission | undefined>;
   
+  // Performance Metrics methods
+  getPerformanceMetric(id: number): Promise<PerformanceMetric | undefined>;
+  getPerformanceMetricsBySubmissionId(submissionId: number): Promise<PerformanceMetric[]>;
+  createPerformanceMetric(metric: InsertPerformanceMetric): Promise<PerformanceMetric>;
+  
+  // Private Performance Metrics methods
+  getPrivatePerformanceMetric(id: number): Promise<PrivatePerformanceMetric | undefined>;
+  getPrivatePerformanceMetricsBySubmissionId(privateSubmissionId: number): Promise<PrivatePerformanceMetric[]>;
+  createPrivatePerformanceMetric(metric: InsertPrivatePerformanceMetric): Promise<PrivatePerformanceMetric>;
+  
   // Session store
   sessionStore: session.Store;
 }
@@ -60,11 +72,15 @@ export class MemStorage implements IStorage {
   private submissions: Map<number, Submission>;
   private privateInvitations: Map<number, PrivateInvitation>;
   private privateSubmissions: Map<number, PrivateSubmission>;
+  private performanceMetrics: Map<number, PerformanceMetric>;
+  private privatePerformanceMetrics: Map<number, PrivatePerformanceMetric>;
   private userIdCounter: number;
   private campaignIdCounter: number;
   private submissionIdCounter: number;
   private privateInvitationIdCounter: number;
   private privateSubmissionIdCounter: number;
+  private performanceMetricIdCounter: number;
+  private privatePerformanceMetricIdCounter: number;
   sessionStore: session.Store;
 
   constructor() {

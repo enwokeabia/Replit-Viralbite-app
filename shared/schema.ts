@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role", { enum: ["restaurant", "influencer"] }).notNull(),
+  role: text("role", { enum: ["restaurant", "influencer", "admin"] }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -136,3 +136,49 @@ export const insertPrivateSubmissionSchema = createInsertSchema(privateSubmissio
 
 export type InsertPrivateSubmission = z.infer<typeof insertPrivateSubmissionSchema>;
 export type PrivateSubmission = typeof privateSubmissions.$inferSelect;
+
+// Performance Metrics table for tracking metrics history and admin updates
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: serial("id").primaryKey(),
+  submissionId: integer("submission_id").notNull().references(() => submissions.id),
+  viewCount: integer("view_count").notNull(),
+  likeCount: integer("like_count").notNull(),
+  calculatedEarnings: doublePrecision("calculated_earnings").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: integer("updated_by").notNull().references(() => users.id),
+});
+
+export const insertPerformanceMetricSchema = createInsertSchema(performanceMetrics).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPerformanceMetric = z.infer<typeof insertPerformanceMetricSchema>;
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+
+// Private Performance Metrics table for tracking private submission metrics
+export const privatePerformanceMetrics = pgTable("private_performance_metrics", {
+  id: serial("id").primaryKey(),
+  privateSubmissionId: integer("private_submission_id").notNull().references(() => privateSubmissions.id),
+  viewCount: integer("view_count").notNull(),
+  likeCount: integer("like_count").notNull(),
+  calculatedEarnings: doublePrecision("calculated_earnings").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: integer("updated_by").notNull().references(() => users.id),
+});
+
+export const insertPrivatePerformanceMetricSchema = createInsertSchema(privatePerformanceMetrics).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPrivatePerformanceMetric = z.infer<typeof insertPrivatePerformanceMetricSchema>;
+export type PrivatePerformanceMetric = typeof privatePerformanceMetrics.$inferSelect;
+
+// Admin update metric schema for form validation
+export const adminUpdateMetricSchema = z.object({
+  viewCount: z.coerce.number().min(0, "Views must be a non-negative number"),
+  likeCount: z.coerce.number().min(0, "Likes must be a non-negative number"),
+});
+
+export type AdminUpdateMetric = z.infer<typeof adminUpdateMetricSchema>;
