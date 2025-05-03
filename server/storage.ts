@@ -101,6 +101,44 @@ export class MemStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
+    
+    // Create admin user for demo/testing purposes
+    // The real password hash would be generated securely, this is a simplified version
+    // Password is "Password"
+    const adminPasswordHash = "ade3e42b3773eabd4c050d7355dfd96e65c89e545a3f040e62d22ce5e86903928cbcf4f4342a12d1c38f87d74d13fd5930940c0c5658e2ed530de62f31e8667d.e16aa36aa6ee2717ced407b074195e04";
+    const adminUser: User = {
+      id: this.userIdCounter++,
+      username: "Admin",
+      password: adminPasswordHash,
+      name: "Administrator",
+      email: "admin@viralbite.com",
+      role: "admin",
+      createdAt: new Date()
+    };
+    this.users.set(adminUser.id, adminUser);
+    
+    // Create test restaurant and influencer users
+    const testRestaurantUser: User = {
+      id: this.userIdCounter++,
+      username: "johnjones",
+      password: adminPasswordHash, // Same password for testing
+      name: "John Jones",
+      email: "john@restaurant.com",
+      role: "restaurant",
+      createdAt: new Date()
+    };
+    this.users.set(testRestaurantUser.id, testRestaurantUser);
+    
+    const testInfluencerUser: User = {
+      id: this.userIdCounter++,
+      username: "Janet",
+      password: adminPasswordHash, // Same password for testing
+      name: "Janet Smith",
+      email: "janet@influencer.com",
+      role: "influencer",
+      createdAt: new Date()
+    };
+    this.users.set(testInfluencerUser.id, testInfluencerUser);
   }
 
   // User methods
