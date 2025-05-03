@@ -25,7 +25,6 @@ async function createSampleData() {
       campaignId: campaign.id,
       influencerId: 3, // Janet (influencer user)
       instagramUrl: "https://www.instagram.com/p/sample-post-1/",
-      caption: "Loving the summer vibes at this amazing restaurant! #ad #sponsored",
       status: "approved",
       notes: "Great content, well-lit photos, and good engagement"
     });
@@ -38,6 +37,7 @@ async function createSampleData() {
       description: "We'd love to have you showcase our exclusive fall menu items before anyone else! Great opportunity for exclusive content.",
       rewardAmount: 100,
       rewardViews: 5000,
+      status: "pending", // Add the required status field
       imageUrl: "https://images.unsplash.com/photo-1565958011703-44f9829ba187",
       expiresAt: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
     });
@@ -45,9 +45,7 @@ async function createSampleData() {
     // Create a sample private submission
     const privateSubmission = await storage.createPrivateSubmission({
       invitationId: invitation.id,
-      influencerId: 3, // Janet
       instagramUrl: "https://www.instagram.com/p/sample-private-post-1/",
-      caption: "Exclusive first look at the amazing fall menu at @restaurant! #ad",
       status: "approved",
       notes: "Excellent presentation of our signature fall dishes"
     });
