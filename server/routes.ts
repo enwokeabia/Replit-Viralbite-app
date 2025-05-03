@@ -8,9 +8,14 @@ import {
   viewUpdateSchema,
   insertPrivateInvitationSchema,
   insertPrivateSubmissionSchema,
+  adminUpdateMetricSchema,
+  insertPerformanceMetricSchema,
+  insertPrivatePerformanceMetricSchema,
   type Campaign, 
   type User,
-  type PrivateInvitation
+  type PrivateInvitation,
+  type Submission,
+  type PrivateSubmission
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -784,6 +789,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting private invitation:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  // Admin routes for performance metrics
+  app.get("/api/admin/submissions", requireAdminRole, async (req, res) => {
+    try {
+      const submissions = await storage.getSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching submissions for admin:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  // Special admin endpoint to get all private submissions
+  // This is a simplified approach - we need to enhance IStorage to include this method for better performance
+  app.get("/api/admin/private-submissions", requireAdminRole, async (req, res) => {
+    try {
+      let allPrivateSubmissions = [];
+      
+      // Get all private invitations
+      const users = await Promise.all(
+        Array.from((await storage.getSubmissions()).map(s => s.influencerId))
+          .map(id => storage.getUser(id))
+      );
+      
+      // Get restaurant users
+      const restaurantUsers = users.filter(user => user && user.role === "restaurant");
+      
+      // For each restaurant, get their private invitations
+      for (const user of restaurantUsers) {
+        if (!user) continue;
+        
+        const invitations = await storage.getPrivateInvitationsByRestaurantId(user.id);
+        
+        // For each invitation, get the private submissions
+        for (const invitation of invitations) {
+          const submissions = await storage.getPrivateSubmissionsByInvitationId(invitation.id);
+          allPrivateSubmissions = [...allPrivateSubmissions, ...submissions];
+        }
+      }
+      
+      res.json(allPrivateSubmissions);
+    } catch (error) {
+      console.error("Error fetching private submissions for admin:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.get("/api/admin/submissions/:id/performance-history", requireAdminRole, async (req, res) => {
+    try {
+      const submissionId = Number(req.params.id);
+      const metrics = await storage.getPerformanceMetricsBySubmissionId(submissionId);
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching performance metrics:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.get("/api/admin/private-submissions/:id/performance-history", requireAdminRole, async (req, res) => {
+    try {
+      const submissionId = Number(req.params.id);
+      const metrics = await storage.getPrivatePerformanceMetricsBySubmissionId(submissionId);
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching private performance metrics:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.post("/api/admin/submissions/:id/performance", requireAdminRole, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const submissionId = Number(req.params.id);
+      const submission = await storage.getSubmission(submissionId);
+      
+      if (!submission) {
+        return res.status(404).send("Submission not found");
+      }
+      
+      // Validate the metrics data
+      const { viewCount, likeCount } = adminUpdateMetricSchema.parse(req.body);
+      
+      // Get campaign to calculate earnings
+      const campaign = await storage.getCampaign(submission.campaignId);
+      if (!campaign) {
+        return res.status(404).send("Associated campaign not found");
+      }
+      
+      // Calculate earnings based on views and campaign reward rule
+      const calculatedEarnings = (viewCount / campaign.rewardViews) * campaign.rewardAmount;
+      
+      // Create the performance metric record
+      const metric = await storage.createPerformanceMetric({
+        submissionId,
+        viewCount,
+        likeCount,
+        calculatedEarnings,
+        updatedBy: user.id
+      });
+      
+      res.status(201).json(metric);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Validation Error",
+          details: fromZodError(error).message
+        });
+      }
+      console.error("Error creating performance metric:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+
+  app.post("/api/admin/private-submissions/:id/performance", requireAdminRole, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const submissionId = Number(req.params.id);
+      const submission = await storage.getPrivateSubmission(submissionId);
+      
+      if (!submission) {
+        return res.status(404).send("Private submission not found");
+      }
+      
+      // Validate the metrics data
+      const { viewCount, likeCount } = adminUpdateMetricSchema.parse(req.body);
+      
+      // Get invitation to calculate earnings
+      const invitation = await storage.getPrivateInvitation(submission.invitationId);
+      if (!invitation) {
+        return res.status(404).send("Associated invitation not found");
+      }
+      
+      // Calculate earnings based on views and invitation reward rule
+      const calculatedEarnings = (viewCount / invitation.rewardViews) * invitation.rewardAmount;
+      
+      // Create the performance metric record
+      const metric = await storage.createPrivatePerformanceMetric({
+        privateSubmissionId: submissionId,
+        viewCount,
+        likeCount,
+        calculatedEarnings,
+        updatedBy: user.id
+      });
+      
+      res.status(201).json(metric);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          error: "Validation Error",
+          details: fromZodError(error).message
+        });
+      }
+      console.error("Error creating private performance metric:", error);
       return res.status(500).send("Internal server error");
     }
   });
