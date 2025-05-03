@@ -20,6 +20,16 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
+// Map to store auth tokens for emergency authentication
+const authTokens = new Map<string, number>();
+// Make it available globally to auth.ts
+global.authTokens = authTokens;
+
+// Declare global namespace to avoid TypeScript errors
+declare global {
+  var authTokens: Map<string, number>;
+}
+
 // Helper function to ensure user is authenticated - with detailed debugging
 function requireAuth(req: Request, res: Response, next: Function) {
   console.log("✅ AUTH CHECK - Session ID:", req.sessionID);
@@ -27,7 +37,18 @@ function requireAuth(req: Request, res: Response, next: Function) {
   console.log("✅ Headers:", JSON.stringify(req.headers));
   console.log("✅ Is Authenticated:", req.isAuthenticated());
   
-  // IMPORTANT: Remove all role-based checks, allow any authenticated user
+  // EMERGENCY FIX: Check for auth token in header as an alternative to cookie-based sessions
+  const authToken = req.headers['x-auth-token'] as string;
+  if (authToken && authTokens.has(authToken)) {
+    const userId = authTokens.get(authToken);
+    console.log("✓ AUTH SUCCESS via token - User ID:", userId);
+    
+    // Set user on request - equivalent to passport's req.user
+    req.user = { id: userId } as any;
+    return next();
+  }
+  
+  // Standard passport authentication check
   if (!req.isAuthenticated()) {
     console.error("⛔ AUTH FAILED - User not authenticated");
     
@@ -40,7 +61,7 @@ function requireAuth(req: Request, res: Response, next: Function) {
     return res.status(401).send("Unauthorized");
   }
   
-  console.log("✓ AUTH SUCCESS - User:", req.user.id, req.user.username);
+  console.log("✓ AUTH SUCCESS via session - User:", req.user.id, req.user.username);
   next();
 }
 

@@ -168,6 +168,41 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Generate an authentication token for emergency use
+  app.post("/api/auth/token", (req, res) => {
+    console.log("Token auth request received for username:", req.body.username);
+    
+    // Use a simpler login flow without session regeneration
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("Token auth error:", err);
+        return res.status(500).send("Internal Server Error");
+      }
+      
+      if (!user) {
+        console.log("Token auth failed: Invalid credentials");
+        return res.status(401).send("Invalid credentials");
+      }
+      
+      // Generate a unique token
+      const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      
+      // Store the token with the user ID in the token map in routes.ts
+      if (typeof global.authTokens !== 'undefined') {
+        global.authTokens.set(token, user.id);
+        console.log("Token generated for user:", user.id, user.username);
+      } else {
+        console.error("authTokens map not available globally");
+      }
+      
+      // Send the token to the client
+      return res.status(200).json({
+        token,
+        user
+      });
+    })(req, res, () => {});
+  });
+  
   // Dummy authenticated test endpoint - allows skip of authentication with a special header
   app.get("/api/force-auth", (req, res) => {
     if (req.headers['x-viralbite-auth-bypass'] === 'true') {

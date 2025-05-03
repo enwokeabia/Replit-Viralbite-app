@@ -33,8 +33,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      // Try token-based auth first as an emergency fallback
+      try {
+        console.log("Attempting token-based authentication");
+        const tokenRes = await apiRequest("POST", "/api/auth/token", credentials);
+        const tokenData = await tokenRes.json();
+        
+        // Store the auth token in localStorage
+        localStorage.setItem("authToken", tokenData.token);
+        
+        // Set the auth token for all future requests
+        console.log("Saved auth token to localStorage");
+        
+        return tokenData.user;
+      } catch (tokenError) {
+        console.error("Token auth failed, falling back to session auth:", tokenError);
+        // Fall back to session-based auth if token auth fails
+        const res = await apiRequest("POST", "/api/login", credentials);
+        return await res.json();
+      }
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -67,15 +84,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      // Clear the auth token from localStorage
+      localStorage.removeItem("authToken");
+      console.log("Removed auth token from localStorage");
+      
+      try {
+        // Also attempt to log out from session-based auth
+        await apiRequest("POST", "/api/logout");
+      } catch (error) {
+        // Ignore errors from logout API call
+        console.log("Session logout API error (ignoring):", error);
+      }
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
     },
     onError: (error: Error) => {
+      // Still clear the user data even if logout fails
+      queryClient.setQueryData(["/api/user"], null);
+      
       toast({
-        title: "Logout failed",
-        description: error.message,
+        title: "Logout may not be complete",
+        description: "Your session has been cleared locally, but the server reported an error: " + error.message,
         variant: "destructive",
       });
     },

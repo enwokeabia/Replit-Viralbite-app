@@ -12,11 +12,23 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Build headers with content type if there's data
+  const headers: Record<string, string> = data 
+    ? { "Content-Type": "application/json" } 
+    : {};
+  
+  // Add auth token if available
+  const authToken = localStorage.getItem("authToken");
+  if (authToken) {
+    headers["X-Auth-Token"] = authToken;
+    console.log("Adding auth token to request");
+  }
+  
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // Still include credentials for cookies
   });
 
   await throwIfResNotOk(res);
@@ -29,7 +41,16 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Include auth token if available
+    const headers: Record<string, string> = {};
+    const authToken = localStorage.getItem("authToken");
+    if (authToken) {
+      headers["X-Auth-Token"] = authToken;
+      console.log("Adding auth token to GET request");
+    }
+    
     const res = await fetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 
