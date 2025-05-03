@@ -14,27 +14,33 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon, trend, className }: StatsCardProps) {
   return (
-    <Card className={cn("p-4", className)}>
+    <Card className={cn("p-4 border hover:shadow-md transition-all duration-200 hover:border-purple-200", className)}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
+          <p className="text-sm font-medium text-slate-600">{title}</p>
+          <p className="text-2xl font-bold bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text mt-1">{value}</p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-          {icon}
+        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-600/10 to-purple-800/10 flex items-center justify-center shadow-sm border border-purple-100">
+          <div className="text-purple-700">
+            {icon}
+          </div>
         </div>
       </div>
       {trend && (
-        <div className="mt-2">
-          <span className={cn(
-            "text-xs flex items-center",
-            trend.positive ? "text-green-600" : "text-red-600"
-          )}>
+        <div className="mt-3 flex items-center">
+          <span 
+            className={cn(
+              "text-xs font-medium flex items-center py-1 px-2 rounded-full",
+              trend.positive 
+                ? "bg-gradient-to-r from-green-50 to-transparent text-green-700 border border-green-100" 
+                : "bg-gradient-to-r from-red-50 to-transparent text-red-700 border border-red-100"
+            )}
+          >
             {trend.positive ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -48,8 +54,8 @@ export function StatsCard({ title, value, icon, trend, className }: StatsCardPro
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -63,6 +69,7 @@ export function StatsCard({ title, value, icon, trend, className }: StatsCardPro
             )}
             {trend.value}
           </span>
+          <span className="text-xs text-slate-500 ml-2">vs. previous period</span>
         </div>
       )}
     </Card>

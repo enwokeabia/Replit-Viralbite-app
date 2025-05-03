@@ -51,23 +51,23 @@ export function PrivateInvitationCard({
   
   const isRestaurantView = viewType === "restaurant";
 
-  // Status badge styling
+  // Status badge styling with gradients
   const statusConfig = {
     pending: {
       label: "Pending",
-      variant: "outline" as const,
+      className: "bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-800 border-yellow-200",
     },
     accepted: {
       label: "Accepted",
-      variant: "secondary" as const,
+      className: "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200",
     },
     declined: {
       label: "Declined",
-      variant: "destructive" as const,
+      className: "bg-gradient-to-r from-red-100 to-red-50 text-red-800 border-red-200",
     },
     completed: {
       label: "Completed",
-      variant: "default" as const,
+      className: "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border-blue-200",
     },
   };
 
@@ -186,14 +186,14 @@ export function PrivateInvitationCard({
   return (
     <>
       <Card className={cn(
-        "transition-all duration-200",
-        invitation.status === "pending" && !isRestaurantView && "ring-1 ring-primary"
+        "transition-all duration-200 hover:shadow-md border hover:border-purple-200",
+        invitation.status === "pending" && !isRestaurantView && "ring-1 ring-purple-400"
       )}>
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
-            <Badge variant={statusConfig[invitation.status].variant}>
+            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusConfig[invitation.status].className}`}>
               {statusConfig[invitation.status].label}
-            </Badge>
+            </div>
             {invitation.expiresAt && (
               <TooltipProvider>
                 <Tooltip>
@@ -210,7 +210,7 @@ export function PrivateInvitationCard({
               </TooltipProvider>
             )}
           </div>
-          <CardTitle className="text-lg">{invitation.title}</CardTitle>
+          <CardTitle className="text-lg bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">{invitation.title}</CardTitle>
           <CardDescription className="line-clamp-2">
             {invitation.description}
           </CardDescription>
@@ -229,8 +229,14 @@ export function PrivateInvitationCard({
 
             <div className="flex justify-between">
               <div className="text-sm">
-                <p className="font-medium">Reward</p>
-                <p className="text-xs">${invitation.rewardAmount} per {invitation.rewardViews} views</p>
+                <p className="font-medium text-slate-700 mb-1">Reward</p>
+                <div className="flex items-center">
+                  <span className="mr-1 text-green-600">$</span>
+                  <span className="text-slate-700 font-semibold">{invitation.rewardAmount}</span>
+                  <span className="mx-1 text-slate-500">per</span>
+                  <span className="text-slate-700 font-semibold">{invitation.rewardViews}</span>
+                  <span className="ml-1 text-slate-500">views</span>
+                </div>
               </div>
 
               {isRestaurantView && invitation.status === "pending" && (
