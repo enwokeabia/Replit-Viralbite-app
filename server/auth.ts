@@ -29,18 +29,17 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  // Add debugging for session issues
-  console.log("Setting up auth with session store:", !!storage.sessionStore);
+  console.log("Setting up auth with in-memory session store (no external storage)");
   
-  // Use extremely simple session configuration to avoid issues
+  // Don't use any external store - just use in-memory session
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'viralbite-super-secret-key-123',
-    resave: true, // Always save session even if unmodified
-    saveUninitialized: true, // Save uninitialized sessions
-    store: storage.sessionStore,
+    secret: 'viralbite-emergency-fix-key',
+    resave: true,
+    saveUninitialized: true,
     cookie: {
-      secure: false, // Set to true in production with HTTPS
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      secure: false,
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     }
   };
 
@@ -152,9 +151,43 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Basic session testing endpoint - creates and accesses the session
+  app.get("/api/session-test", (req, res) => {
+    // Set a session value
+    if (!req.session.testValue) {
+      req.session.testValue = new Date().toISOString();
+      console.log("🔶 NEW TEST VALUE CREATED:", req.session.testValue);
+    } else {
+      console.log("🔶 EXISTING TEST VALUE:", req.session.testValue);
+    }
+    
+    return res.json({
+      sessionID: req.sessionID,
+      testValue: req.session.testValue,
+      cookies: req.headers.cookie
+    });
+  });
+
+  // Dummy authenticated test endpoint - allows skip of authentication with a special header
+  app.get("/api/force-auth", (req, res) => {
+    if (req.headers['x-viralbite-auth-bypass'] === 'true') {
+      req.login({id: 1, username: 'emergency-bypass'} as any, (err) => {
+        if (err) {
+          console.error("Emergency auth bypass error:", err);
+          return res.status(500).send("Error forcing authentication");
+        }
+        return res.json({success: true, sessionID: req.sessionID});
+      });
+    } else {
+      return res.json({success: false, message: "Missing auth bypass header"});
+    }
+  });
+
   app.get("/api/user", (req, res) => {
     console.log("GET /api/user - Session ID:", req.sessionID);
     console.log("GET /api/user - Is Authenticated:", req.isAuthenticated());
+    console.log("GET /api/user - Cookies:", req.headers.cookie);
+    
     if (req.isAuthenticated()) {
       console.log("GET /api/user - User:", req.user.id, req.user.username);
       return res.json(req.user);

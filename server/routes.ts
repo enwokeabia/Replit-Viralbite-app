@@ -20,17 +20,27 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
-// Helper function to ensure user is authenticated - simplified version
+// Helper function to ensure user is authenticated - with detailed debugging
 function requireAuth(req: Request, res: Response, next: Function) {
-  console.log("RequireAuth - checking authentication for session ID:", req.sessionID);
+  console.log("✅ AUTH CHECK - Session ID:", req.sessionID);
+  console.log("✅ Cookies:", req.headers.cookie);
+  console.log("✅ Headers:", JSON.stringify(req.headers));
+  console.log("✅ Is Authenticated:", req.isAuthenticated());
   
   // IMPORTANT: Remove all role-based checks, allow any authenticated user
   if (!req.isAuthenticated()) {
-    console.error("Auth failed - Not authenticated. Headers:", JSON.stringify(req.headers["cookie"]));
+    console.error("⛔ AUTH FAILED - User not authenticated");
+    
+    // Create a "dummy" auth cookie to see if that helps with session issues
+    res.cookie('viralbite_auth_test', 'true', { 
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days
+    });
+    
     return res.status(401).send("Unauthorized");
   }
   
-  console.log("Auth success - User:", req.user.id, req.user.username);
+  console.log("✓ AUTH SUCCESS - User:", req.user.id, req.user.username);
   next();
 }
 
