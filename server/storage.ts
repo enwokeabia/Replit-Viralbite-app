@@ -89,11 +89,15 @@ export class MemStorage implements IStorage {
     this.submissions = new Map();
     this.privateInvitations = new Map();
     this.privateSubmissions = new Map();
+    this.performanceMetrics = new Map();
+    this.privatePerformanceMetrics = new Map();
     this.userIdCounter = 1;
     this.campaignIdCounter = 1;
     this.submissionIdCounter = 1;
     this.privateInvitationIdCounter = 1;
     this.privateSubmissionIdCounter = 1;
+    this.performanceMetricIdCounter = 1;
+    this.privatePerformanceMetricIdCounter = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
@@ -146,13 +150,23 @@ export class MemStorage implements IStorage {
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
     const id = this.campaignIdCounter++;
     const createdAt = new Date();
-    const campaign: Campaign = { 
-      ...insertCampaign, 
-      id, 
-      createdAt,
+    
+    // Create a campaign with all required fields explicitly assigned
+    const campaign: Campaign = {
+      id,
+      restaurantId: insertCampaign.restaurantId,
+      title: insertCampaign.title,
+      description: insertCampaign.description,
+      location: insertCampaign.location || null,
+      imageUrl: insertCampaign.imageUrl,
+      rewardAmount: insertCampaign.rewardAmount,
+      rewardViews: insertCampaign.rewardViews,
       maxPayoutPerInfluencer: insertCampaign.maxPayoutPerInfluencer || null,
-      maxBudget: insertCampaign.maxBudget || null
+      maxBudget: insertCampaign.maxBudget || null,
+      status: insertCampaign.status,
+      createdAt
     };
+    
     this.campaigns.set(id, campaign);
     return campaign;
   }
@@ -205,6 +219,7 @@ export class MemStorage implements IStorage {
       ...insertSubmission, 
       id, 
       views: 0,
+      likes: 0,
       earnings: 0,
       createdAt,
       notes: insertSubmission.notes || null
@@ -292,6 +307,7 @@ export class MemStorage implements IStorage {
       ...insertSubmission,
       id,
       views: 0,
+      likes: 0,
       earnings: 0,
       createdAt,
       notes: insertSubmission.notes || null
@@ -308,6 +324,78 @@ export class MemStorage implements IStorage {
     const updatedSubmission = { ...submission, ...submissionUpdate };
     this.privateSubmissions.set(id, updatedSubmission);
     return updatedSubmission;
+  }
+
+  // Performance Metrics methods
+  async getPerformanceMetric(id: number): Promise<PerformanceMetric | undefined> {
+    return this.performanceMetrics.get(id);
+  }
+
+  async getPerformanceMetricsBySubmissionId(submissionId: number): Promise<PerformanceMetric[]> {
+    return Array.from(this.performanceMetrics.values())
+      .filter((metric) => metric.submissionId === submissionId)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()); // Sort by most recent
+  }
+
+  async createPerformanceMetric(insertMetric: InsertPerformanceMetric): Promise<PerformanceMetric> {
+    const id = this.performanceMetricIdCounter++;
+    const updatedAt = new Date();
+    
+    const metric: PerformanceMetric = {
+      ...insertMetric,
+      id,
+      updatedAt
+    };
+    
+    this.performanceMetrics.set(id, metric);
+    
+    // Update the submission with the latest metrics and earnings
+    const submission = await this.getSubmission(insertMetric.submissionId);
+    if (submission) {
+      await this.updateSubmission(submission.id, {
+        views: insertMetric.viewCount,
+        likes: insertMetric.likeCount,
+        earnings: insertMetric.calculatedEarnings
+      });
+    }
+    
+    return metric;
+  }
+
+  // Private Performance Metrics methods
+  async getPrivatePerformanceMetric(id: number): Promise<PrivatePerformanceMetric | undefined> {
+    return this.privatePerformanceMetrics.get(id);
+  }
+
+  async getPrivatePerformanceMetricsBySubmissionId(privateSubmissionId: number): Promise<PrivatePerformanceMetric[]> {
+    return Array.from(this.privatePerformanceMetrics.values())
+      .filter((metric) => metric.privateSubmissionId === privateSubmissionId)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()); // Sort by most recent
+  }
+
+  async createPrivatePerformanceMetric(insertMetric: InsertPrivatePerformanceMetric): Promise<PrivatePerformanceMetric> {
+    const id = this.privatePerformanceMetricIdCounter++;
+    const updatedAt = new Date();
+    
+    const metric: PrivatePerformanceMetric = {
+      ...insertMetric,
+      id,
+      updatedAt
+    };
+    
+    this.privatePerformanceMetrics.set(id, metric);
+    
+    // Update the private submission with the latest metrics and earnings
+    const submission = await this.getPrivateSubmission(insertMetric.privateSubmissionId);
+    if (submission) {
+      await this.updatePrivateSubmission(submission.id, {
+        views: insertMetric.viewCount,
+        likes: insertMetric.likeCount,
+        earnings: insertMetric.calculatedEarnings
+      });
+    }
+    
+    return metric;
   }
 }
 

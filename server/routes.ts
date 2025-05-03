@@ -39,6 +39,14 @@ function requireInfluencerRole(req: Request, res: Response, next: Function) {
   next();
 }
 
+// Helper function to ensure user has admin role
+function requireAdminRole(req: Request, res: Response, next: Function) {
+  if (!req.isAuthenticated() || (req.user as User).role !== "admin") {
+    return res.status(403).send("Forbidden: Admin role required");
+  }
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   setupAuth(app);
