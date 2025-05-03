@@ -22,9 +22,16 @@ import { fromZodError } from "zod-validation-error";
 
 // Helper function to ensure user is authenticated
 function requireAuth(req: Request, res: Response, next: Function) {
+  console.log("RequireAuth - Session ID:", req.sessionID);
+  console.log("RequireAuth - User authenticated:", req.isAuthenticated());
+  console.log("RequireAuth - Session:", JSON.stringify(req.session));
+  
   if (!req.isAuthenticated()) {
+    console.error("Auth failed - Not authenticated in session. Headers:", req.headers);
     return res.status(401).send("Unauthorized");
   }
+  
+  console.log("Auth success - User:", req.user.id, req.user.username, req.user.role);
   next();
 }
 

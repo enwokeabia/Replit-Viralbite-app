@@ -34,12 +34,15 @@ export function setupAuth(app: Express) {
   
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'viralbite-secret-key',
-    resave: true,
-    saveUninitialized: true,
+    name: 'viralbite.sid', // Custom session name to avoid conflicts
+    resave: false, // Don't save session if unmodified
+    saveUninitialized: false, // Don't create session until something stored
+    rolling: true, // Force a session identifier cookie to be set on every response
     store: storage.sessionStore,
     cookie: {
+      path: '/',
       secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
       sameSite: 'lax'
     }
@@ -97,13 +100,30 @@ export function setupAuth(app: Express) {
       });
       console.log("User created successfully:", user.id, user.username);
 
-      req.login(user, (err) => {
+      // Ensure we have a fresh session
+      req.session.regenerate((err) => {
         if (err) {
-          console.error("Login after registration failed:", err);
+          console.error("Session regeneration error during registration:", err);
           return next(err);
         }
-        console.log("User logged in after registration:", req.isAuthenticated());
-        res.status(201).json(user);
+        
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error("Login after registration failed:", loginErr);
+            return next(loginErr);
+          }
+          
+          // Save the session after login
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error("Session save error after registration:", saveErr);
+              return next(saveErr);
+            }
+            
+            console.log("User logged in after registration:", req.isAuthenticated(), "Session ID:", req.sessionID);
+            res.status(201).json(user);
+          });
+        });
       });
     } catch (error) {
       console.error("Error during registration:", error);
@@ -130,8 +150,26 @@ export function setupAuth(app: Express) {
           console.error("Session save error:", err);
           return next(err);
         }
-        console.log("Login successful, authenticated:", req.isAuthenticated());
-        return res.status(200).json(user);
+        
+        // Regenerate session when logging in to prevent session fixation
+        const oldSessionID = req.sessionID;
+        req.session.regenerate((err) => {
+          if (err) {
+            console.error("Session regeneration error:", err);
+            return next(err);
+          }
+          
+          // Re-login after regenerating the session
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              console.error("Re-login error after session regeneration:", loginErr);
+              return next(loginErr);
+            }
+            
+            console.log(`Login successful, authenticated: ${req.isAuthenticated()}, old session: ${oldSessionID}, new session: ${req.sessionID}`);
+            return res.status(200).json(user);
+          });
+        });
       });
     })(req, res, next);
   });
