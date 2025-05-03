@@ -24,6 +24,7 @@ import Campaigns from "@/pages/restaurant/campaigns";
 import Submissions from "@/pages/restaurant/submissions";
 import Analytics from "@/pages/restaurant/analytics";
 import RestaurantPrivateInvitations from "@/pages/restaurant/private-invitations";
+import RestaurantSettings from "@/pages/restaurant/settings";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <ProtectedRoute path="/restaurant/submissions" component={Submissions} />
       <ProtectedRoute path="/restaurant/analytics" component={Analytics} />
       <ProtectedRoute path="/restaurant/private-invitations" component={RestaurantPrivateInvitations} />
+      <ProtectedRoute path="/restaurant/settings" component={RestaurantSettings} />
       
       {/* Influencer Routes */}
       <ProtectedRoute path="/influencer/dashboard" component={InfluencerDashboard} />
