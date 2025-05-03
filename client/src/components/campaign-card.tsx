@@ -37,9 +37,9 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
   const [showApplyModal, setShowApplyModal] = useState(false);
 
   const statusColor = {
-    active: "bg-green-100 text-green-800",
-    draft: "bg-yellow-100 text-yellow-800",
-    ended: "bg-gray-100 text-gray-800",
+    active: "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200",
+    draft: "bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-800 border-yellow-200",
+    ended: "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border-gray-200",
   };
 
   const handleDelete = async () => {
@@ -89,7 +89,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
         </div>
 
         <CardContent className="p-4">
-          <h3 className="text-lg font-semibold text-foreground mb-1">{campaign.title}</h3>
+          <h3 className="text-lg font-semibold mb-1 bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">{campaign.title}</h3>
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
             {campaign.description}
           </p>
@@ -153,7 +153,7 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
               </div>
             ) : (
               <Button
-                className="bg-purple-700 hover:bg-purple-800 text-white"
+                className="bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white shadow-sm"
                 size="sm"
                 onClick={() => setShowApplyModal(true)}
                 disabled={campaign.status !== "active"}

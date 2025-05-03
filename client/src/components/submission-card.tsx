@@ -40,9 +40,9 @@ export function SubmissionCard({
   const [likeCount, setLikeCount] = useState(submission.likes || 0);
 
   const statusColors = {
-    pending: "bg-yellow-100 text-yellow-800",
-    approved: "bg-green-100 text-green-800",
-    rejected: "bg-red-100 text-red-800",
+    pending: "bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-800 border-yellow-200",
+    approved: "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200",
+    rejected: "bg-gradient-to-r from-red-100 to-red-50 text-red-800 border-red-200",
   };
 
   const handleStatusUpdate = async (status: "approved" | "rejected") => {
@@ -89,10 +89,10 @@ export function SubmissionCard({
   };
 
   return (
-    <Card>
+    <Card className="hover:shadow-md transition-all duration-200 border-slate-200">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-foreground">{campaignTitle}</h3>
+          <h3 className="font-semibold bg-gradient-to-r from-purple-800 to-purple-600 text-transparent bg-clip-text">{campaignTitle}</h3>
           <Badge
             variant="outline"
             className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -153,7 +153,7 @@ export function SubmissionCard({
             </Button>
             <Button
               size="sm"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-sm"
               onClick={() => handleStatusUpdate("approved")}
               disabled={isUpdatingStatus}
             >
@@ -165,7 +165,7 @@ export function SubmissionCard({
         {restaurantView && submission.status === "approved" && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button size="sm" variant="outline" className="w-full">
+              <Button size="sm" variant="outline" className="w-full text-purple-800 hover:bg-purple-50 border-purple-200 hover:text-purple-900">
                 Update Engagement
               </Button>
             </AlertDialogTrigger>
@@ -205,8 +205,17 @@ export function SubmissionCard({
                 <AlertDialogAction
                   onClick={handleViewsUpdate}
                   disabled={isUpdatingViews}
+                  className="bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white"
                 >
-                  {isUpdatingViews ? "Updating..." : "Update"}
+                  {isUpdatingViews ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Updating...
+                    </>
+                  ) : "Update"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
