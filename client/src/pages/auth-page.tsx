@@ -65,12 +65,20 @@ export default function AuthPage() {
   });
 
   const handleLogin = (data: LoginFormValues) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        // Set flag to indicate this was a manual login
+        setHasManuallyLoggedIn(true);
+      }
+    });
   };
 
   const handleRegister = (data: RegisterFormValues) => {
     registerMutation.mutate(data, {
       onSuccess: () => {
+        // Set flag to indicate this was a manual login
+        setHasManuallyLoggedIn(true);
+        
         // After successful registration, login with the same credentials
         loginMutation.mutate({
           username: data.username,
@@ -190,14 +198,26 @@ export default function AuthPage() {
   // Open emergency login dialog
   const [showEmergencyOptions, setShowEmergencyOptions] = useState(false);
   
-  // Redirect if logged in, but don't clear tokens on page load anymore
+  // Only redirect if the user manually logs in, not if auto-authenticated by a token
+  // This prevents the auth page from immediately redirecting
+  const [hasManuallyLoggedIn, setHasManuallyLoggedIn] = useState(false);
+  
+  // Save the initial state of authentication to avoid auto-redirect
+  const [initialAuthChecked, setInitialAuthChecked] = useState(false);
+  
   useEffect(() => {
-    // Only redirect if the user is already authenticated
-    if (user) {
-      console.log("User already authenticated, redirecting to home");
+    // On first load, record if we're already authenticated but don't redirect
+    if (!initialAuthChecked) {
+      setInitialAuthChecked(true);
+      return;
+    }
+    
+    // Only redirect if user state changes after initial load or manual login
+    if (user && (hasManuallyLoggedIn || initialAuthChecked)) {
+      console.log("User authenticated, redirecting to home");
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, navigate, hasManuallyLoggedIn, initialAuthChecked]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-purple-50">
