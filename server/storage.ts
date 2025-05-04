@@ -204,8 +204,13 @@ export class MemStorage implements IStorage {
   }
 
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
+    // Increment the ID counter to ensure we always get a unique ID
     const id = this.campaignIdCounter++;
     const createdAt = new Date();
+    
+    console.log(`Creating campaign with ID ${id} for restaurant ${insertCampaign.restaurantId}`);
+    console.log(`Campaign ID counter is now ${this.campaignIdCounter}`);
+    console.log(`Current campaigns in store: ${this.campaigns.size}`);
     
     // Create a campaign with all required fields explicitly assigned
     const campaign: Campaign = {
@@ -223,7 +228,12 @@ export class MemStorage implements IStorage {
       createdAt
     };
     
+    // Add the campaign to the campaigns map
     this.campaigns.set(id, campaign);
+    
+    console.log(`After creation, campaigns in store: ${this.campaigns.size}`);
+    console.log(`All campaign IDs: ${Array.from(this.campaigns.keys()).join(', ')}`);
+    
     return campaign;
   }
 

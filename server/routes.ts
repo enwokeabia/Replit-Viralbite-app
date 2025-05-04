@@ -229,11 +229,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (user.role === "restaurant") {
         // Restaurant users see their own campaigns
+        console.log(`Fetching campaigns for restaurant user ${user.id} (${user.username})`);
         const campaigns = await storage.getCampaignsByRestaurantId(user.id);
+        console.log(`Found ${campaigns.length} campaigns for restaurant user ${user.id}`);
         return res.json(campaigns);
       } else {
         // Influencer users see all active campaigns
+        console.log(`Fetching active campaigns for influencer user ${user.id} (${user.username})`);
         const campaigns = await storage.getActiveCampaigns();
+        console.log(`Found ${campaigns.length} active campaigns`);
         return res.json(campaigns);
       }
     } catch (error) {
@@ -244,11 +248,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/campaigns/:id", requireAuth, async (req, res) => {
     try {
+      const user = req.user as User;
       const campaignId = Number(req.params.id);
       const campaign = await storage.getCampaign(campaignId);
       
       if (!campaign) {
         return res.status(404).send("Campaign not found");
+      }
+      
+      // Restaurant users can only view their own campaigns
+      if (user.role === "restaurant" && campaign.restaurantId !== user.id) {
+        console.log(`Restaurant user ${user.id} attempted to access campaign ${campaignId} belonging to restaurant ${campaign.restaurantId}`);
+        return res.status(403).send("Forbidden: You can only view your own campaigns");
+      }
+      
+      // Influencer users can only view active campaigns
+      if (user.role === "influencer" && campaign.status !== "active") {
+        console.log(`Influencer user ${user.id} attempted to access inactive campaign ${campaignId}`);
+        return res.status(403).send("Forbidden: You can only view active campaigns");
       }
       
       res.json(campaign);
