@@ -200,10 +200,21 @@ export function setupAuth(app: Express) {
         console.error("authTokens map not available globally");
       }
       
+      // Create a safe user object without the password
+      const safeUser = {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt
+      };
+      
       // Send the token to the client
       return res.status(200).json({
         token,
-        user
+        user: safeUser
       });
     })(req, res, () => {});
   });
@@ -229,6 +240,20 @@ export function setupAuth(app: Express) {
     console.log("GET /api/user - Cookies:", req.headers.cookie);
     console.log("GET /api/user - All Headers:", JSON.stringify(req.headers));
     
+    // Helper function to create a safe user object
+    const createSafeUserObject = (user: any) => {
+      if (!user) return null;
+      return {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt
+      };
+    };
+    
     // Check for token in header for alternative authentication
     const authToken = req.headers['x-auth-token'] as string;
     if (authToken && typeof global.authTokens !== 'undefined' && global.authTokens.has(authToken)) {
@@ -244,7 +269,8 @@ export function setupAuth(app: Express) {
       storage.getUser(userId).then(user => {
         if (user) {
           console.log("GET /api/user - Token user found:", user.id, user.username);
-          return res.json(user);
+          const safeUser = createSafeUserObject(user);
+          return res.json(safeUser);
         } else {
           console.log("GET /api/user - Token auth, but user not found");
           return res.sendStatus(401);
@@ -259,7 +285,8 @@ export function setupAuth(app: Express) {
     
     if (req.isAuthenticated()) {
       console.log("GET /api/user - User:", req.user.id, req.user.username);
-      return res.json(req.user);
+      const safeUser = createSafeUserObject(req.user);
+      return res.json(safeUser);
     } else {
       console.log("GET /api/user - Not authenticated");
       return res.sendStatus(401);

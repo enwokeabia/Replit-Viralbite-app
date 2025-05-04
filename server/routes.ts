@@ -197,10 +197,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Emergency login - authTokens after:", Array.from(authTokens.keys()));
       console.log("Emergency login - global tokens:", Array.from(global.authTokens.keys()));
       
+      // Create a safe user object without password to prevent circular JSON issue
+      const safeUser = {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt
+      };
+      
       // Return the token and user data
       res.json({
         token,
-        user,
+        user: safeUser,
         message: "EMERGENCY AUTH: Use this token in the X-Auth-Token header for all requests"
       });
     } catch (error) {
