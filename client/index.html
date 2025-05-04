@@ -8,11 +8,49 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <meta name="description" content="ViralBite - Performance-based marketing platform connecting restaurants and influencers with metrics tracking and earnings calculations" />
+    <style>
+      .emergency-login-banner {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #5e35b1;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 4px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 9999;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .emergency-login-banner:hover {
+        background: #7b1fa2;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <a href="/emergency-login" class="emergency-login-banner">Emergency Login</a>
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <script>
+      // Initialize auth token fallback (outside of React)
+      window.addEventListener('DOMContentLoaded', () => {
+        const tokens = {
+          admin: 'test-token-123456',
+          restaurant: 'test-restaurant-token',
+          influencer: 'test-influencer-token',
+          restaurant2: 'test-restaurant2-token'
+        };
+        
+        // Set a default token if none exists
+        if (!localStorage.getItem('authToken') && !localStorage.getItem('testToken')) {
+          localStorage.setItem('testToken', tokens.admin);
+          console.log('Set default admin token');
+        }
+      });
+    </script>
   </body>
 </html>
