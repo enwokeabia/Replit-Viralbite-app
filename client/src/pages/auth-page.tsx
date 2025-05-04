@@ -422,6 +422,80 @@ export default function AuthPage() {
           </div>
         </Card>
       </div>
+      
+      {/* Emergency Login Dialog */}
+      <Dialog open={showEmergencyOptions} onOpenChange={setShowEmergencyOptions}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Emergency Login</DialogTitle>
+            <DialogDescription>
+              Select a role to login as for testing purposes.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <Button 
+              variant="outline" 
+              className="justify-start text-left font-normal"
+              onClick={() => {
+                handleEmergencyLogin(1);
+                setShowEmergencyOptions(false);
+              }}
+            >
+              <div className="w-8 h-8 mr-2 bg-gray-200 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /></svg>
+              </div>
+              <div>
+                <div className="font-medium">Admin</div>
+                <div className="text-xs text-gray-500">Full access to all features</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="justify-start text-left font-normal"
+              onClick={() => {
+                handleEmergencyLogin(2);
+                setShowEmergencyOptions(false);
+              }}
+            >
+              <div className="w-8 h-8 mr-2 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-store text-purple-700"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2 2 0 0 1-2-2v0"/><path d="M18 12v0a2 2 0 0 1-2-2v0"/><path d="M14 12v0a2 2 0 0 1-2-2v0"/><path d="M10 12v0a2 2 0 0 1-2-2v0"/><path d="M6 12v0a2 2 0 0 1-2-2v0"/><path d="M2 7v3a2 2 0 0 0 2 2v0"/></svg>
+              </div>
+              <div>
+                <div className="font-medium">Restaurant</div>
+                <div className="text-xs text-gray-500">John Jones - Restaurant Owner</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="justify-start text-left font-normal"
+              onClick={() => {
+                handleEmergencyLogin(3);
+                setShowEmergencyOptions(false);
+              }}
+            >
+              <div className="w-8 h-8 mr-2 bg-pink-100 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user text-pink-700"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <div className="font-medium">Influencer</div>
+                <div className="text-xs text-gray-500">Janet - Food Influencer</div>
+              </div>
+            </Button>
+          </div>
+          
+          <DialogFooter className="sm:justify-start">
+            <Button 
+              variant="ghost"
+              onClick={() => setShowEmergencyOptions(false)}
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
