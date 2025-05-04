@@ -34,18 +34,19 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  console.log("Setting up auth with in-memory session store (no external storage)");
+  // Use session store from the DatabaseStorage
+  console.log("Setting up auth with database-connected session store");
   
-  // Don't use any external store - just use in-memory session
   const sessionSettings: session.SessionOptions = {
     secret: 'viralbite-emergency-fix-key',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    }
+    },
+    store: storage.sessionStore
   };
 
   app.set("trust proxy", 1);
