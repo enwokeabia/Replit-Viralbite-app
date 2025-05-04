@@ -199,6 +199,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Internal server error" });
     }
   });
+  
+  // User profile update endpoint
+  app.put("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as User;
+      const { name, profilePicture } = req.body;
+      
+      const updatedUser = await storage.updateUser(user.id, { 
+        name: name || user.name,
+        profilePicture
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).send("User not found");
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
 
   // Campaign routes
   app.get("/api/campaigns", requireAuth, async (req, res) => {

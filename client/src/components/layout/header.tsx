@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useLocation } from "wouter";
@@ -66,7 +66,11 @@ export function Header({ title, description }: HeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center space-x-2">
               <Avatar className="h-8 w-8">
-                <AvatarFallback>{userInitials}</AvatarFallback>
+                {user.profilePicture ? (
+                  <AvatarImage src={user.profilePicture} alt={user.name} />
+                ) : (
+                  <AvatarFallback>{userInitials}</AvatarFallback>
+                )}
               </Avatar>
               <span className="hidden md:inline text-sm font-medium">{user.name}</span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />

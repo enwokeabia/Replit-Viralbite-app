@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { queryClient } from "@/lib/queryClient";
 import {
   Card,
   CardContent,
@@ -44,7 +45,7 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [profileImageSrc, setProfileImageSrc] = useState<string | undefined>(undefined);
+  const [profileImageSrc, setProfileImageSrc] = useState<string | undefined>(user?.profilePicture);
   
   // In a real application, this would come from the API
   const defaultValues: ProfileFormValues = {
@@ -83,8 +84,15 @@ export default function Profile() {
     try {
       setIsSubmitting(true);
       
-      // Mock API call - in a real app, this would update the user's profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update the user in the auth context
+      const userData = {
+        ...user,
+        name: data.name,
+        profilePicture: profileImageSrc || user?.profilePicture,
+      };
+      
+      // Update the user data in the authentication context
+      queryClient.setQueryData(["/api/user"], userData);
       
       toast({
         title: "Profile updated",

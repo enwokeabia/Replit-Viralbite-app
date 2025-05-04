@@ -16,7 +16,7 @@ import {
   Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 
 interface SidebarProps {
@@ -120,9 +120,13 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="p-4">
         <div className="flex items-center space-x-3 mb-6">
           <Avatar className="h-10 w-10 bg-muted">
-            <AvatarFallback>
-              {userInitials}
-            </AvatarFallback>
+            {user.profilePicture ? (
+              <AvatarImage src={user.profilePicture} alt={user.name} />
+            ) : (
+              <AvatarFallback>
+                {userInitials}
+              </AvatarFallback>
+            )}
           </Avatar>
           <div>
             <p className="font-medium text-foreground">{user.name}</p>
