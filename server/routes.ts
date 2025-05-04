@@ -228,6 +228,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Special endpoint to view all users in the system - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/all-users", requireAuth, async (req, res) => {
+    try {
+      const usersArray = Array.from(storage.users.values());
+      console.log(`DEBUG: Total users in store: ${usersArray.length}`);
+      
+      // Create a safe users array without passwords
+      const safeUsers = usersArray.map(user => ({
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt
+      }));
+      
+      return res.json({
+        totalUsers: usersArray.length,
+        userIds: usersArray.map(u => u.id),
+        users: safeUsers
+      });
+    } catch (error) {
+      console.error("Error listing all users:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
   // Special endpoint to view all campaigns in the system - DO NOT USE IN PRODUCTION
   app.get("/api/debug/all-campaigns", requireAuth, async (req, res) => {
     try {
