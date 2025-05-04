@@ -452,7 +452,7 @@ export default function AuthPage() {
               variant="outline" 
               className="justify-start text-left font-normal"
               onClick={() => {
-                handleEmergencyLogin(2);
+                handleEmergencyLogin("restaurant");
                 setShowEmergencyOptions(false);
               }}
             >
@@ -469,7 +469,7 @@ export default function AuthPage() {
               variant="outline" 
               className="justify-start text-left font-normal"
               onClick={() => {
-                handleEmergencyLogin(3);
+                handleEmergencyLogin("influencer");
                 setShowEmergencyOptions(false);
               }}
             >
