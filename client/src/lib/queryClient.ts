@@ -122,6 +122,20 @@ export function setDefaultToken(role: "admin" | "restaurant" | "influencer" = "a
     influencer: "test-influencer-token"
   };
   
+  // Clear any existing tokens first
+  clearTokens();
+  
+  // Set the test token for the specified role
   setTestToken(tokens[role]);
   console.log(`Default ${role} token set:`, tokens[role]);
+}
+
+// Initialize default token if one doesn't exist already
+// This ensures we always have some form of auth during development
+export function initializeAuthToken() {
+  const existingToken = localStorage.getItem("authToken") || localStorage.getItem("testToken");
+  if (!existingToken) {
+    console.log("No auth token found, setting default admin token");
+    setDefaultToken("admin");
+  }
 }
