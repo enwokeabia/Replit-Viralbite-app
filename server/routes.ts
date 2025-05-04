@@ -422,8 +422,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Campaign created successfully:", campaign);
         
         // Double-verify that the created campaign has the correct restaurant ID
-        if (campaign.restaurantId !== user.id) {
-          console.error(`ERROR: Created campaign has restaurant ID ${campaign.restaurantId} but user ID is ${user.id}`);
+        if (Number(campaign.restaurantId) !== Number(user.id)) {
+          console.error(`ERROR: Created campaign has restaurant ID ${campaign.restaurantId} (${typeof campaign.restaurantId}) but user ID is ${user.id} (${typeof user.id})`);
         }
         
         // Show all campaigns for this restaurant after creation
@@ -461,7 +461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Campaign not found");
       }
       
-      if (campaign.restaurantId !== user.id) {
+      if (Number(campaign.restaurantId) !== Number(user.id)) {
+        console.error(`Edit permission denied: Campaign restaurant ID ${campaign.restaurantId} (${typeof campaign.restaurantId}) vs User ID ${user.id} (${typeof user.id})`);
         return res.status(403).send("Forbidden: You can only edit your own campaigns");
       }
       
@@ -483,7 +484,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Campaign not found");
       }
       
-      if (campaign.restaurantId !== user.id) {
+      if (Number(campaign.restaurantId) !== Number(user.id)) {
+        console.error(`Delete permission denied: Campaign restaurant ID ${campaign.restaurantId} (${typeof campaign.restaurantId}) vs User ID ${user.id} (${typeof user.id})`);
         return res.status(403).send("Forbidden: You can only delete your own campaigns");
       }
       
@@ -525,7 +527,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Only restaurant owners can see all submissions for their campaigns
-      if (user.role === "restaurant" && campaign.restaurantId !== user.id) {
+      if (user.role === "restaurant" && Number(campaign.restaurantId) !== Number(user.id)) {
+        console.error(`Submissions access denied: Campaign restaurant ID ${campaign.restaurantId} (${typeof campaign.restaurantId}) vs User ID ${user.id} (${typeof user.id})`);
         return res.status(403).send("Forbidden: You can only view submissions for your own campaigns");
       }
       
