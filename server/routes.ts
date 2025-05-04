@@ -25,11 +25,14 @@ const authTokens = new Map<string, number>();
 // Make it available globally to auth.ts
 global.authTokens = authTokens;
 
-// Add standard test tokens for quick access
+// Add standard test tokens for quick access - now using database IDs
+console.log("Setting up test authentication tokens...");
+// These tokens will be made available for emergency login bypass
 authTokens.set('test-token-123456', 1); // Admin
 authTokens.set('test-restaurant-token', 2); // Restaurant user (johnjones)
 authTokens.set('test-restaurant2-token', 4); // Second restaurant user (restaurant2)
 authTokens.set('test-influencer-token', 3); // Influencer user
+console.log("Test tokens configured with database user IDs")
 
 // Declare global namespace to avoid TypeScript errors
 declare global {
