@@ -315,21 +315,31 @@ export class MemStorage implements IStorage {
 
   async getSubmissionsByCampaignId(campaignId: number): Promise<Submission[]> {
     return Array.from(this.submissions.values())
-      .filter((submission) => submission.campaignId === campaignId);
+      .filter((submission) => Number(submission.campaignId) === Number(campaignId));
   }
 
   async getSubmissionsByInfluencerId(influencerId: number): Promise<Submission[]> {
     return Array.from(this.submissions.values())
-      .filter((submission) => submission.influencerId === influencerId);
+      .filter((submission) => Number(submission.influencerId) === Number(influencerId));
   }
 
   async getSubmissionsByRestaurantId(restaurantId: number): Promise<Submission[]> {
+    // Use Number conversion for consistent comparison
+    const numRestaurantId = Number(restaurantId);
+    console.log(`Getting submissions for restaurant ID ${numRestaurantId} (${typeof restaurantId})`);
+    
     const restaurantCampaignIds = Array.from(this.campaigns.values())
-      .filter(campaign => campaign.restaurantId === restaurantId)
+      .filter(campaign => Number(campaign.restaurantId) === numRestaurantId)
       .map(campaign => campaign.id);
     
-    return Array.from(this.submissions.values())
-      .filter(submission => restaurantCampaignIds.includes(submission.campaignId));
+    console.log(`Found ${restaurantCampaignIds.length} campaigns for restaurant ID ${numRestaurantId}: ${restaurantCampaignIds.join(', ')}`);
+    
+    const submissions = Array.from(this.submissions.values())
+      .filter(submission => restaurantCampaignIds.includes(Number(submission.campaignId)));
+    
+    console.log(`Found ${submissions.length} submissions for restaurant ID ${numRestaurantId}`);
+    
+    return submissions;
   }
 
   async createSubmission(insertSubmission: InsertSubmission): Promise<Submission> {
@@ -370,12 +380,12 @@ export class MemStorage implements IStorage {
 
   async getPrivateInvitationsByRestaurantId(restaurantId: number): Promise<PrivateInvitation[]> {
     return Array.from(this.privateInvitations.values())
-      .filter((invitation) => invitation.restaurantId === restaurantId);
+      .filter((invitation) => Number(invitation.restaurantId) === Number(restaurantId));
   }
 
   async getPrivateInvitationsByInfluencerId(influencerId: number): Promise<PrivateInvitation[]> {
     return Array.from(this.privateInvitations.values())
-      .filter((invitation) => invitation.influencerId === influencerId);
+      .filter((invitation) => Number(invitation.influencerId) === Number(influencerId));
   }
 
   async createPrivateInvitation(insertInvitation: InsertPrivateInvitation): Promise<PrivateInvitation> {
@@ -416,7 +426,7 @@ export class MemStorage implements IStorage {
 
   async getPrivateSubmissionsByInvitationId(invitationId: number): Promise<PrivateSubmission[]> {
     return Array.from(this.privateSubmissions.values())
-      .filter((submission) => submission.invitationId === invitationId);
+      .filter((submission) => Number(submission.invitationId) === Number(invitationId));
   }
 
   async createPrivateSubmission(insertSubmission: InsertPrivateSubmission): Promise<PrivateSubmission> {
