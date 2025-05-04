@@ -13,6 +13,15 @@ import crypto from "crypto";
 const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
+  // Storage collections for debugging
+  users: Map<number, User>;
+  campaigns: Map<number, Campaign>;
+  submissions: Map<number, Submission>;
+  privateInvitations: Map<number, PrivateInvitation>;
+  privateSubmissions: Map<number, PrivateSubmission>;
+  performanceMetrics: Map<number, PerformanceMetric>;
+  privatePerformanceMetrics: Map<number, PrivatePerformanceMetric>;
+  
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -68,13 +77,14 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private campaigns: Map<number, Campaign>;
-  private submissions: Map<number, Submission>;
-  private privateInvitations: Map<number, PrivateInvitation>;
-  private privateSubmissions: Map<number, PrivateSubmission>;
-  private performanceMetrics: Map<number, PerformanceMetric>;
-  private privatePerformanceMetrics: Map<number, PrivatePerformanceMetric>;
+  // Make campaigns map public so we can debug it in routes
+  users: Map<number, User>;
+  campaigns: Map<number, Campaign>;
+  submissions: Map<number, Submission>;
+  privateInvitations: Map<number, PrivateInvitation>;
+  privateSubmissions: Map<number, PrivateSubmission>;
+  performanceMetrics: Map<number, PerformanceMetric>;
+  privatePerformanceMetrics: Map<number, PrivatePerformanceMetric>;
   private userIdCounter: number;
   private campaignIdCounter: number;
   private submissionIdCounter: number;
@@ -94,28 +104,25 @@ export class MemStorage implements IStorage {
     this.performanceMetrics = new Map();
     this.privatePerformanceMetrics = new Map();
     
-    // Initialize the ID counters - start from higher numbers to avoid collisions
-    this.userIdCounter = 100;
-    this.campaignIdCounter = 100;
-    this.submissionIdCounter = 100;
-    this.privateInvitationIdCounter = 100;
-    this.privateSubmissionIdCounter = 100;
-    this.performanceMetricIdCounter = 100;
-    this.privatePerformanceMetricIdCounter = 100;
+    // Initialize the ID counters with starting values
+    this.userIdCounter = 1;
+    this.campaignIdCounter = 1;
+    this.submissionIdCounter = 1;
+    this.privateInvitationIdCounter = 1;
+    this.privateSubmissionIdCounter = 1;
+    this.performanceMetricIdCounter = 1;
+    this.privatePerformanceMetricIdCounter = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
     
-    console.log("Initializing in-memory storage with sample data");
-    
     // Password is "Password"
     const adminPasswordHash = "ade3e42b3773eabd4c050d7355dfd96e65c89e545a3f040e62d22ce5e86903928cbcf4f4342a12d1c38f87d74d13fd5930940c0c5658e2ed530de62f31e8667d.e16aa36aa6ee2717ced407b074195e04";
     
     // Create admin user for demo/testing purposes
-    const adminId = 1;
     const adminUser: User = {
-      id: adminId,
+      id: this.userIdCounter++,
       username: "Admin",
       password: adminPasswordHash,
       name: "Administrator",
@@ -124,12 +131,11 @@ export class MemStorage implements IStorage {
       profilePicture: null,
       createdAt: new Date()
     };
-    this.users.set(adminId, adminUser);
+    this.users.set(adminUser.id, adminUser);
     
-    // Create test restaurant users
-    const restaurantId1 = 2;
-    const testRestaurantUser1: User = {
-      id: restaurantId1,
+    // Create test restaurant user
+    const testRestaurantUser: User = {
+      id: this.userIdCounter++,
       username: "johnjones",
       password: adminPasswordHash, // Same password for testing
       name: "John Jones",
@@ -138,25 +144,11 @@ export class MemStorage implements IStorage {
       profilePicture: null,
       createdAt: new Date()
     };
-    this.users.set(restaurantId1, testRestaurantUser1);
-    
-    const restaurantId2 = 3;
-    const testRestaurantUser2: User = {
-      id: restaurantId2,
-      username: "maryresto",
-      password: adminPasswordHash, // Same password for testing
-      name: "Mary's Restaurant",
-      email: "mary@restaurant.com",
-      role: "restaurant",
-      profilePicture: null,
-      createdAt: new Date()
-    };
-    this.users.set(restaurantId2, testRestaurantUser2);
+    this.users.set(testRestaurantUser.id, testRestaurantUser);
     
     // Create test influencer user
-    const influencerId = 4;
     const testInfluencerUser: User = {
-      id: influencerId,
+      id: this.userIdCounter++,
       username: "Janet",
       password: adminPasswordHash, // Same password for testing
       name: "Janet Smith",
@@ -165,49 +157,7 @@ export class MemStorage implements IStorage {
       profilePicture: null,
       createdAt: new Date()
     };
-    this.users.set(influencerId, testInfluencerUser);
-    
-    // Create test campaigns - one for each restaurant
-    const campaign1Id = 1;
-    const campaign1: Campaign = {
-      id: campaign1Id,
-      restaurantId: restaurantId1,
-      title: "Burger Promo",
-      description: "Promote our new burger menu",
-      location: "New York",
-      imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
-      rewardAmount: 50,
-      rewardViews: 10000,
-      maxPayoutPerInfluencer: 200,
-      maxBudget: 1000,
-      status: "active",
-      createdAt: new Date()
-    };
-    this.campaigns.set(campaign1Id, campaign1);
-    
-    const campaign2Id = 2;
-    const campaign2: Campaign = {
-      id: campaign2Id,
-      restaurantId: restaurantId2,
-      title: "Sushi Special",
-      description: "Promote our sushi chef's special",
-      location: "Los Angeles",
-      imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
-      rewardAmount: 40,
-      rewardViews: 5000,
-      maxPayoutPerInfluencer: 160,
-      maxBudget: 800,
-      status: "active",
-      createdAt: new Date()
-    };
-    this.campaigns.set(campaign2Id, campaign2);
-    
-    // Update the counters to be greater than the highest ID used
-    this.userIdCounter = Math.max(adminId, restaurantId1, restaurantId2, influencerId) + 1;
-    this.campaignIdCounter = Math.max(campaign1Id, campaign2Id) + 1;
-    
-    console.log(`Initialized storage with ${this.users.size} users and ${this.campaigns.size} campaigns`);
-    console.log(`User ID counter: ${this.userIdCounter}, Campaign ID counter: ${this.campaignIdCounter}`);
+    this.users.set(testInfluencerUser.id, testInfluencerUser);
   }
 
   // User methods
@@ -259,13 +209,29 @@ export class MemStorage implements IStorage {
   }
 
   async getCampaignsByRestaurantId(restaurantId: number): Promise<Campaign[]> {
-    return Array.from(this.campaigns.values())
-      .filter((campaign) => campaign.restaurantId === restaurantId);
+    // Get all campaigns and perform strict equality check on restaurantId
+    const campaigns = Array.from(this.campaigns.values())
+      .filter((campaign) => {
+        const matches = campaign.restaurantId === restaurantId;
+        console.log(`Campaign ID ${campaign.id}, Restaurant ID ${campaign.restaurantId}, Requested ID ${restaurantId}, Match: ${matches}`);
+        return matches;
+      });
+    
+    console.log(`Found ${campaigns.length} campaigns for restaurant ID ${restaurantId}`);
+    return campaigns;
   }
 
   async getActiveCampaigns(): Promise<Campaign[]> {
-    return Array.from(this.campaigns.values())
-      .filter((campaign) => campaign.status === "active");
+    // Get all campaigns that are active
+    const campaigns = Array.from(this.campaigns.values())
+      .filter((campaign) => {
+        const isActive = campaign.status === "active";
+        console.log(`Campaign ID ${campaign.id}, Status: ${campaign.status}, Active: ${isActive}`);
+        return isActive;
+      });
+    
+    console.log(`Found ${campaigns.length} active campaigns`);
+    return campaigns;
   }
 
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {

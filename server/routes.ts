@@ -226,18 +226,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/campaigns", requireAuth, async (req, res) => {
     try {
       const user = req.user as User;
+      console.log(`User ID ${user.id} (${user.username}) with role ${user.role} is fetching campaigns`);
+      
+      // For tracking consistency between requests
+      console.log(`Current campaigns in store: ${Array.from(storage.campaigns.values()).length}`);
+      console.log(`Campaign IDs in store: ${Array.from(storage.campaigns.keys()).join(', ')}`);
       
       if (user.role === "restaurant") {
-        // Restaurant users see their own campaigns
+        // Restaurant users see their own campaigns by matching restaurantId with their user.id
         console.log(`Fetching campaigns for restaurant user ${user.id} (${user.username})`);
+        
         const campaigns = await storage.getCampaignsByRestaurantId(user.id);
         console.log(`Found ${campaigns.length} campaigns for restaurant user ${user.id}`);
+        console.log(`Restaurant campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
+        
         return res.json(campaigns);
       } else {
         // Influencer users see all active campaigns
         console.log(`Fetching active campaigns for influencer user ${user.id} (${user.username})`);
+        
         const campaigns = await storage.getActiveCampaigns();
         console.log(`Found ${campaigns.length} active campaigns`);
+        console.log(`Active campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
+        
         return res.json(campaigns);
       }
     } catch (error) {
