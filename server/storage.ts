@@ -18,6 +18,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   
   // Campaign methods
   getCampaign(id: number): Promise<Campaign | undefined>;
@@ -113,6 +114,7 @@ export class MemStorage implements IStorage {
       name: "Administrator",
       email: "admin@viralbite.com",
       role: "admin",
+      profilePicture: null,
       createdAt: new Date()
     };
     this.users.set(adminUser.id, adminUser);
@@ -125,6 +127,7 @@ export class MemStorage implements IStorage {
       name: "John Jones",
       email: "john@restaurant.com",
       role: "restaurant",
+      profilePicture: null,
       createdAt: new Date()
     };
     this.users.set(testRestaurantUser.id, testRestaurantUser);
@@ -136,6 +139,7 @@ export class MemStorage implements IStorage {
       name: "Janet Smith",
       email: "janet@influencer.com",
       role: "influencer",
+      profilePicture: null,
       createdAt: new Date()
     };
     this.users.set(testInfluencerUser.id, testInfluencerUser);
@@ -161,9 +165,23 @@ export class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
     const createdAt = new Date();
-    const user: User = { ...insertUser, id, createdAt };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt,
+      profilePicture: insertUser.profilePicture || null
+    };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...userUpdate };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   // Campaign methods
