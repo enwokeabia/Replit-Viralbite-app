@@ -340,6 +340,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Special endpoint to create a test campaign for restaurant2 - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-restaurant2-campaign", requireAuth, async (req, res) => {
+    try {
+      // Only allow admin to create this special test campaign
+      const user = req.user as User;
+      if (user.role !== "admin") {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: "Only admin can use this special endpoint"
+        });
+      }
+      
+      // Get the restaurant2 user
+      const restaurant2 = await storage.getUserByUsername("restaurant2");
+      if (!restaurant2) {
+        return res.status(404).json({
+          error: "Not Found",
+          message: "Restaurant2 user does not exist"
+        });
+      }
+      
+      console.log(`Creating test campaign for restaurant2 user ${restaurant2.id} (${restaurant2.username})`);
+      
+      const campaign = await storage.createCampaign({
+        restaurantId: restaurant2.id,
+        title: "Restaurant2's Special Campaign",
+        description: "This is a campaign from our second restaurant",
+        imageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+        rewardAmount: 80,
+        rewardViews: 20000,
+        maxPayoutPerInfluencer: 250,
+        maxBudget: 2000,
+        status: "active"
+      });
+      
+      console.log(`Created test campaign with ID ${campaign.id} for restaurant2`);
+      console.log(`Current campaigns in store: ${Array.from(storage.campaigns.values()).length}`);
+      
+      return res.json({
+        message: "Test campaign created for restaurant2",
+        campaign: campaign
+      });
+    } catch (error) {
+      console.error("Error creating restaurant2 test campaign:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
   // User profile update endpoint
   app.put("/api/user/profile", requireAuth, async (req, res) => {
     try {
