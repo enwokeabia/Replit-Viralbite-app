@@ -42,6 +42,11 @@ export default function BrowseCampaigns() {
     queryKey: ['/api/campaigns'],
   });
 
+  // Get submissions for current user
+  const { data: submissions } = useQuery<Submission[]>({
+    queryKey: ['/api/submissions'],
+  });
+
   // Filter and sort campaigns
   const filteredCampaigns = campaigns
     ? campaigns

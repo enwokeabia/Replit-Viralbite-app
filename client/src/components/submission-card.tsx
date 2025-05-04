@@ -6,19 +6,7 @@ import { Submission } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// Alert dialog imports removed as they're no longer needed
 
 interface SubmissionCardProps {
   submission: Submission;
@@ -35,9 +23,6 @@ export function SubmissionCard({
 }: SubmissionCardProps) {
   const { toast } = useToast();
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [isUpdatingViews, setIsUpdatingViews] = useState(false);
-  const [viewCount, setViewCount] = useState(submission.views);
-  const [likeCount, setLikeCount] = useState(submission.likes || 0);
 
   const statusColors = {
     pending: "bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-800 border-yellow-200",
@@ -65,28 +50,7 @@ export function SubmissionCard({
     }
   };
 
-  const handleViewsUpdate = async () => {
-    try {
-      setIsUpdatingViews(true);
-      await apiRequest("PUT", `/api/submissions/${submission.id}/views`, { 
-        views: viewCount,
-        likes: likeCount
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
-      toast({
-        title: "Stats updated",
-        description: "Views, likes, and earnings have been updated",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update engagement stats",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdatingViews(false);
-    }
-  };
+  // Removed handleViewsUpdate function - only admins should be able to update metrics
 
   return (
     <Card className="hover:shadow-md transition-all duration-200 border-slate-200 hover:border-purple-200">
@@ -210,65 +174,7 @@ export function SubmissionCard({
           </div>
         )}
 
-        {restaurantView && submission.status === "approved" && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="outline" className="w-full text-purple-800 hover:bg-purple-50 border-purple-200 hover:text-purple-900">
-                Update Engagement
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Update Engagement Stats</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Enter the current view and like counts for this submission
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="space-y-4 py-4">
-                <div>
-                  <Label htmlFor="view-count">View Count</Label>
-                  <Input
-                    id="view-count"
-                    type="number"
-                    min={0}
-                    value={viewCount}
-                    onChange={(e) => setViewCount(parseInt(e.target.value) || 0)}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="like-count">Like Count</Label>
-                  <Input
-                    id="like-count"
-                    type="number"
-                    min={0}
-                    value={likeCount}
-                    onChange={(e) => setLikeCount(parseInt(e.target.value) || 0)}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleViewsUpdate}
-                  disabled={isUpdatingViews}
-                  className="bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white"
-                >
-                  {isUpdatingViews ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Updating...
-                    </>
-                  ) : "Update"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        {/* Removed restaurant's ability to update engagement metrics - only admins can update now */}
       </CardContent>
     </Card>
   );
