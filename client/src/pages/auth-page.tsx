@@ -96,6 +96,8 @@ export default function AuthPage() {
 
   // Make emergency login a manual process with role selection 
   const handleEmergencyLogin = async (role?: string) => {
+    // Set the manually logged in flag when emergency login is started
+    setHasManuallyLoggedIn(true);
     try {
       console.log("Attempting emergency login...");
       // First, clear any previous tokens to avoid conflicts
@@ -198,26 +200,22 @@ export default function AuthPage() {
   // Open emergency login dialog
   const [showEmergencyOptions, setShowEmergencyOptions] = useState(false);
   
-  // Only redirect if the user manually logs in, not if auto-authenticated by a token
-  // This prevents the auth page from immediately redirecting
+  // Only redirect after a manual login action
   const [hasManuallyLoggedIn, setHasManuallyLoggedIn] = useState(false);
   
-  // Save the initial state of authentication to avoid auto-redirect
-  const [initialAuthChecked, setInitialAuthChecked] = useState(false);
-  
   useEffect(() => {
-    // On first load, record if we're already authenticated but don't redirect
-    if (!initialAuthChecked) {
-      setInitialAuthChecked(true);
-      return;
-    }
+    // When this component mounts, ensure we have no auth tokens
+    // This prevents the auth page from redirecting immediately
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("testToken");
+    console.log("Auth tokens cleared on auth page load");
     
-    // Only redirect if user state changes after initial load or manual login
-    if (user && (hasManuallyLoggedIn || initialAuthChecked)) {
-      console.log("User authenticated, redirecting to home");
+    // Only redirect after a successful manual login
+    if (user && hasManuallyLoggedIn) {
+      console.log("User manually logged in, redirecting to home");
       navigate("/");
     }
-  }, [user, navigate, hasManuallyLoggedIn, initialAuthChecked]);
+  }, [user, navigate, hasManuallyLoggedIn]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-purple-50">
