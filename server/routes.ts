@@ -25,6 +25,11 @@ const authTokens = new Map<string, number>();
 // Make it available globally to auth.ts
 global.authTokens = authTokens;
 
+// Add standard test tokens for quick access
+authTokens.set('test-token-123456', 1); // Admin
+authTokens.set('test-restaurant-token', 2); // Restaurant user
+authTokens.set('test-influencer-token', 3); // Influencer user
+
 // Declare global namespace to avoid TypeScript errors
 declare global {
   var authTokens: Map<string, number>;
@@ -168,7 +173,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // EMERGENCY: Special endpoint to bypass auth - DO NOT USE IN PRODUCTION
   app.get("/api/emergency-login", async (req, res) => {
     try {
-      const userId = req.query.userId ? Number(req.query.userId) : 1; // Default to admin
+      const role = req.query.role as string || "admin"; // Default to admin
+      
+      let userId = 1; // Default admin
+      if (role === "restaurant") {
+        userId = 2;
+      } else if (role === "influencer") {
+        userId = 3;
+      }
+      
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -184,10 +197,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Emergency login - authTokens after:", Array.from(authTokens.keys()));
       console.log("Emergency login - global tokens:", Array.from(global.authTokens.keys()));
       
-      // Also add another test token
-      const testToken = "test-token-123456";
-      authTokens.set(testToken, user.id);
-      
       // Return the token and user data
       res.json({
         token,
@@ -197,6 +206,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Emergency login error:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
+  // Special endpoint to view all campaigns in the system - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/all-campaigns", requireAuth, async (req, res) => {
+    try {
+      const campaignsArray = Array.from(storage.campaigns.values());
+      console.log(`DEBUG: Total campaigns in store: ${campaignsArray.length}`);
+      
+      // Group campaigns by restaurant ID for a clear overview
+      const campaignsByRestaurant = campaignsArray.reduce((acc, campaign) => {
+        const restaurantId = campaign.restaurantId;
+        if (!acc[restaurantId]) {
+          acc[restaurantId] = [];
+        }
+        acc[restaurantId].push(campaign);
+        return acc;
+      }, {} as Record<number, Campaign[]>);
+      
+      // Log the distribution
+      Object.entries(campaignsByRestaurant).forEach(([restaurantId, campaigns]) => {
+        console.log(`Restaurant ID ${restaurantId} has ${campaigns.length} campaigns: ${campaigns.map(c => c.id).join(', ')}`);
+      });
+      
+      return res.json({
+        totalCampaigns: campaignsArray.length,
+        campaignIds: campaignsArray.map(c => c.id),
+        campaignsByRestaurant
+      });
+    } catch (error) {
+      console.error("Error listing all campaigns:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
+  // Special endpoint to create test campaigns - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-test-campaigns", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as User;
+      console.log(`Creating test campaigns for user ${user.id} (${user.username})`);
+      
+      // Create unique test campaigns for the current user if they're a restaurant
+      if (user.role === "restaurant") {
+        const campaign1 = await storage.createCampaign({
+          restaurantId: user.id,
+          title: `${user.username}'s Test Campaign 1`,
+          description: "A test campaign for debugging",
+          imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+          rewardAmount: 25,
+          rewardViews: 5000,
+          maxPayoutPerInfluencer: 100,
+          maxBudget: 500,
+          status: "active"
+        });
+        
+        const campaign2 = await storage.createCampaign({
+          restaurantId: user.id,
+          title: `${user.username}'s Test Campaign 2`,
+          description: "Another test campaign for debugging",
+          imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+          rewardAmount: 50,
+          rewardViews: 10000,
+          maxPayoutPerInfluencer: 200,
+          maxBudget: 1000,
+          status: "active"
+        });
+        
+        console.log(`Created test campaigns with IDs ${campaign1.id} and ${campaign2.id}`);
+        console.log(`Current campaigns in store: ${Array.from(storage.campaigns.values()).length}`);
+        console.log(`Campaign IDs in store: ${Array.from(storage.campaigns.keys()).join(', ')}`);
+        
+        return res.json({
+          message: "Test campaigns created",
+          campaigns: [campaign1, campaign2]
+        });
+      } else {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: "Only restaurant users can create test campaigns"
+        });
+      }
+    } catch (error) {
+      console.error("Error creating test campaigns:", error);
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
   

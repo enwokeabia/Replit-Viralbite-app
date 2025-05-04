@@ -209,15 +209,27 @@ export class MemStorage implements IStorage {
   }
 
   async getCampaignsByRestaurantId(restaurantId: number): Promise<Campaign[]> {
-    // Get all campaigns and perform strict equality check on restaurantId
+    // Get all campaigns and perform strict equality check on restaurantId with additional type checking
     const campaigns = Array.from(this.campaigns.values())
       .filter((campaign) => {
-        const matches = campaign.restaurantId === restaurantId;
-        console.log(`Campaign ID ${campaign.id}, Restaurant ID ${campaign.restaurantId}, Requested ID ${restaurantId}, Match: ${matches}`);
+        // Convert both values to numbers for reliable comparison
+        const campaignRestaurantId = Number(campaign.restaurantId);
+        const requestedId = Number(restaurantId);
+        
+        const matches = campaignRestaurantId === requestedId;
+        console.log(`Campaign ID ${campaign.id}, Restaurant ID ${campaignRestaurantId} (${typeof campaign.restaurantId}), Requested ID ${requestedId} (${typeof restaurantId}), Match: ${matches}`);
         return matches;
       });
     
     console.log(`Found ${campaigns.length} campaigns for restaurant ID ${restaurantId}`);
+    
+    // Additional verification for debugging
+    if (campaigns.length > 0) {
+      console.log("Restaurant campaigns:", campaigns.map(c => ({id: c.id, title: c.title, restaurantId: c.restaurantId})));
+    } else {
+      console.log("No campaigns found for this restaurant.");
+    }
+    
     return campaigns;
   }
 
