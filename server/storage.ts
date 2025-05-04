@@ -85,6 +85,7 @@ export class MemStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
+    // Initialize the maps
     this.users = new Map();
     this.campaigns = new Map();
     this.submissions = new Map();
@@ -92,23 +93,29 @@ export class MemStorage implements IStorage {
     this.privateSubmissions = new Map();
     this.performanceMetrics = new Map();
     this.privatePerformanceMetrics = new Map();
-    this.userIdCounter = 1;
-    this.campaignIdCounter = 1;
-    this.submissionIdCounter = 1;
-    this.privateInvitationIdCounter = 1;
-    this.privateSubmissionIdCounter = 1;
-    this.performanceMetricIdCounter = 1;
-    this.privatePerformanceMetricIdCounter = 1;
+    
+    // Initialize the ID counters - start from higher numbers to avoid collisions
+    this.userIdCounter = 100;
+    this.campaignIdCounter = 100;
+    this.submissionIdCounter = 100;
+    this.privateInvitationIdCounter = 100;
+    this.privateSubmissionIdCounter = 100;
+    this.performanceMetricIdCounter = 100;
+    this.privatePerformanceMetricIdCounter = 100;
+    
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
     
-    // Create admin user for demo/testing purposes
-    // The real password hash would be generated securely, this is a simplified version
+    console.log("Initializing in-memory storage with sample data");
+    
     // Password is "Password"
     const adminPasswordHash = "ade3e42b3773eabd4c050d7355dfd96e65c89e545a3f040e62d22ce5e86903928cbcf4f4342a12d1c38f87d74d13fd5930940c0c5658e2ed530de62f31e8667d.e16aa36aa6ee2717ced407b074195e04";
+    
+    // Create admin user for demo/testing purposes
+    const adminId = 1;
     const adminUser: User = {
-      id: this.userIdCounter++,
+      id: adminId,
       username: "Admin",
       password: adminPasswordHash,
       name: "Administrator",
@@ -117,11 +124,12 @@ export class MemStorage implements IStorage {
       profilePicture: null,
       createdAt: new Date()
     };
-    this.users.set(adminUser.id, adminUser);
+    this.users.set(adminId, adminUser);
     
-    // Create test restaurant and influencer users
-    const testRestaurantUser: User = {
-      id: this.userIdCounter++,
+    // Create test restaurant users
+    const restaurantId1 = 2;
+    const testRestaurantUser1: User = {
+      id: restaurantId1,
       username: "johnjones",
       password: adminPasswordHash, // Same password for testing
       name: "John Jones",
@@ -130,10 +138,25 @@ export class MemStorage implements IStorage {
       profilePicture: null,
       createdAt: new Date()
     };
-    this.users.set(testRestaurantUser.id, testRestaurantUser);
+    this.users.set(restaurantId1, testRestaurantUser1);
     
+    const restaurantId2 = 3;
+    const testRestaurantUser2: User = {
+      id: restaurantId2,
+      username: "maryresto",
+      password: adminPasswordHash, // Same password for testing
+      name: "Mary's Restaurant",
+      email: "mary@restaurant.com",
+      role: "restaurant",
+      profilePicture: null,
+      createdAt: new Date()
+    };
+    this.users.set(restaurantId2, testRestaurantUser2);
+    
+    // Create test influencer user
+    const influencerId = 4;
     const testInfluencerUser: User = {
-      id: this.userIdCounter++,
+      id: influencerId,
       username: "Janet",
       password: adminPasswordHash, // Same password for testing
       name: "Janet Smith",
@@ -142,7 +165,49 @@ export class MemStorage implements IStorage {
       profilePicture: null,
       createdAt: new Date()
     };
-    this.users.set(testInfluencerUser.id, testInfluencerUser);
+    this.users.set(influencerId, testInfluencerUser);
+    
+    // Create test campaigns - one for each restaurant
+    const campaign1Id = 1;
+    const campaign1: Campaign = {
+      id: campaign1Id,
+      restaurantId: restaurantId1,
+      title: "Burger Promo",
+      description: "Promote our new burger menu",
+      location: "New York",
+      imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+      rewardAmount: 50,
+      rewardViews: 10000,
+      maxPayoutPerInfluencer: 200,
+      maxBudget: 1000,
+      status: "active",
+      createdAt: new Date()
+    };
+    this.campaigns.set(campaign1Id, campaign1);
+    
+    const campaign2Id = 2;
+    const campaign2: Campaign = {
+      id: campaign2Id,
+      restaurantId: restaurantId2,
+      title: "Sushi Special",
+      description: "Promote our sushi chef's special",
+      location: "Los Angeles",
+      imageUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+      rewardAmount: 40,
+      rewardViews: 5000,
+      maxPayoutPerInfluencer: 160,
+      maxBudget: 800,
+      status: "active",
+      createdAt: new Date()
+    };
+    this.campaigns.set(campaign2Id, campaign2);
+    
+    // Update the counters to be greater than the highest ID used
+    this.userIdCounter = Math.max(adminId, restaurantId1, restaurantId2, influencerId) + 1;
+    this.campaignIdCounter = Math.max(campaign1Id, campaign2Id) + 1;
+    
+    console.log(`Initialized storage with ${this.users.size} users and ${this.campaigns.size} campaigns`);
+    console.log(`User ID counter: ${this.userIdCounter}, Campaign ID counter: ${this.campaignIdCounter}`);
   }
 
   // User methods
