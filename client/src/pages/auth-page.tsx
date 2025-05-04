@@ -141,8 +141,15 @@ export default function AuthPage() {
   // Open emergency login dialog
   const [showEmergencyOptions, setShowEmergencyOptions] = useState(false);
   
-  // Redirect if logged in
+  // Clear tokens and redirect if logged in
   useEffect(() => {
+    // Clear any existing tokens when loading auth page to prevent auto-login
+    if (window.location.pathname === "/auth") {
+      console.log("Auth page loaded, clearing tokens");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("testToken");
+    }
+    
     if (user) {
       navigate("/");
     }

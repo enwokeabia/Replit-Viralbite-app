@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
+import { clearTokens } from "@/lib/queryClient";
 
 export function ProtectedRoute({
   path,
@@ -22,6 +23,9 @@ export function ProtectedRoute({
   }
 
   if (!user) {
+    // Clear any stored tokens to ensure proper auth flow
+    clearTokens();
+    
     return (
       <Route path={path}>
         <Redirect to="/auth" />

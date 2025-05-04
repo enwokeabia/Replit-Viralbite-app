@@ -193,12 +193,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Clear existing tokens with the same user ID to prevent duplicates
-      for (const [token, id] of authTokens.entries()) {
+      Array.from(authTokens.entries()).forEach(([token, id]) => {
         if (Number(id) === Number(userId)) {
           console.log(`Removing existing token for user ${userId}`);
           authTokens.delete(token);
         }
-      }
+      });
       
       // Add test token to authTokens for consistent behavior
       authTokens.set(testToken, user.id);

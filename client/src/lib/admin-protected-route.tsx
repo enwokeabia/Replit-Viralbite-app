@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
+import { clearTokens } from "@/lib/queryClient";
 
 export function AdminProtectedRoute({
   path,
@@ -11,17 +12,30 @@ export function AdminProtectedRoute({
 }) {
   const { user, isLoading } = useAuth();
 
-  return (
-    <Route path={path}>
-      {isLoading ? (
+  if (isLoading) {
+    return (
+      <Route path={path}>
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-border" />
         </div>
-      ) : !user || user.role !== "admin" ? (
+      </Route>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    // Clear any stored tokens to ensure proper auth flow
+    clearTokens();
+    
+    return (
+      <Route path={path}>
         <Redirect to="/admin/login" />
-      ) : (
-        <Component />
-      )}
+      </Route>
+    );
+  }
+
+  return (
+    <Route path={path}>
+      <Component />
     </Route>
   );
 }
