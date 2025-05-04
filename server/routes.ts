@@ -176,10 +176,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const role = req.query.role as string || "admin"; // Default to admin
       
       let userId = 1; // Default admin
+      let testToken = "test-token-123456"; // Default admin test token
+      
       if (role === "restaurant") {
         userId = 2;
+        testToken = "test-restaurant-token";
       } else if (role === "influencer") {
         userId = 3;
+        testToken = "test-influencer-token";
       }
       
       const user = await storage.getUser(userId);
@@ -188,14 +192,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
       
-      // Generate a token for this user
-      const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      // Clear existing tokens with the same user ID to prevent duplicates
+      for (const [token, id] of authTokens.entries()) {
+        if (Number(id) === Number(userId)) {
+          console.log(`Removing existing token for user ${userId}`);
+          authTokens.delete(token);
+        }
+      }
       
-      // Double check that the global variable is working
-      console.log("Emergency login - authTokens before:", Array.from(authTokens.keys()));
-      authTokens.set(token, user.id);
-      console.log("Emergency login - authTokens after:", Array.from(authTokens.keys()));
-      console.log("Emergency login - global tokens:", Array.from(global.authTokens.keys()));
+      // Add test token to authTokens for consistent behavior
+      authTokens.set(testToken, user.id);
+      console.log(`Added test token ${testToken} for user ${user.id} (${user.name})`);
       
       // Create a safe user object without password to prevent circular JSON issue
       const safeUser = {
@@ -210,7 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return the token and user data
       res.json({
-        token,
+        token: testToken,
         user: safeUser,
         message: "EMERGENCY AUTH: Use this token in the X-Auth-Token header for all requests"
       });

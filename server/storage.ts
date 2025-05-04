@@ -463,7 +463,7 @@ export class MemStorage implements IStorage {
 
   async getPerformanceMetricsBySubmissionId(submissionId: number): Promise<PerformanceMetric[]> {
     return Array.from(this.performanceMetrics.values())
-      .filter((metric) => metric.submissionId === submissionId)
+      .filter((metric) => Number(metric.submissionId) === Number(submissionId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()); // Sort by most recent
   }
 
@@ -499,7 +499,7 @@ export class MemStorage implements IStorage {
 
   async getPrivatePerformanceMetricsBySubmissionId(privateSubmissionId: number): Promise<PrivatePerformanceMetric[]> {
     return Array.from(this.privatePerformanceMetrics.values())
-      .filter((metric) => metric.privateSubmissionId === privateSubmissionId)
+      .filter((metric) => Number(metric.privateSubmissionId) === Number(privateSubmissionId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()); // Sort by most recent
   }
 
