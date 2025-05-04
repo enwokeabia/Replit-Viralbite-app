@@ -51,9 +51,6 @@ export default function BrowseCampaigns() {
   const filteredCampaigns = campaigns
     ? campaigns
         .filter((campaign) => {
-          // Only show active campaigns
-          if (campaign.status !== "active") return false;
-          
           // Apply search filter
           if (
             searchQuery &&

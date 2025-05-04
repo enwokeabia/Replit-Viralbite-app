@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Campaign IDs in store: ${Array.from(storage.campaigns.keys()).join(', ')}`);
       
       if (user.role === "restaurant") {
-        // Restaurant users see their own campaigns by matching restaurantId with their user.id
+        // Restaurant users see their own campaigns
         console.log(`Fetching campaigns for restaurant user ${user.id} (${user.username})`);
         
         const campaigns = await storage.getCampaignsByRestaurantId(user.id);
@@ -467,12 +467,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return res.json(campaigns);
       } else {
-        // Influencer users see all active campaigns
-        console.log(`Fetching active campaigns for influencer user ${user.id} (${user.username})`);
+        // Influencer users see all campaigns
+        console.log(`Fetching all campaigns for influencer user ${user.id} (${user.username})`);
         
-        const campaigns = await storage.getActiveCampaigns();
-        console.log(`Found ${campaigns.length} active campaigns`);
-        console.log(`Active campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
+        const campaigns = await storage.getAllCampaigns();
+        console.log(`Found ${campaigns.length} campaigns`);
+        console.log(`Campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
         
         return res.json(campaigns);
       }
