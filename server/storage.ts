@@ -9,6 +9,8 @@ import { users, type User, type InsertUser,
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import crypto from "crypto";
+import { db } from "./db";
+import { eq, inArray } from "drizzle-orm";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -542,4 +544,623 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // Maps are used only to maintain API compatibility with the interface
+  // These maps do not actually store data, but are required by the interface
+  users: Map<number, User> = new Map();
+  campaigns: Map<number, Campaign> = new Map();
+  submissions: Map<number, Submission> = new Map();
+  privateInvitations: Map<number, PrivateInvitation> = new Map();
+  privateSubmissions: Map<number, PrivateSubmission> = new Map();
+  performanceMetrics: Map<number, PerformanceMetric> = new Map();
+  privatePerformanceMetrics: Map<number, PrivatePerformanceMetric> = new Map();
+  
+  sessionStore: session.Store;
+
+  constructor() {
+    // Use MemoryStore for sessions
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // 24h, clear expired entries
+    });
+    
+    // No in-memory data initialization as data is stored in the database
+    console.log("Using persistent database storage for all data");
+  }
+
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error("Error retrieving user:", error);
+      return undefined;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user;
+    } catch (error) {
+      console.error("Error retrieving user by username:", error);
+      return undefined;
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user;
+    } catch (error) {
+      console.error("Error retrieving user by email:", error);
+      return undefined;
+    }
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    try {
+      const [user] = await db.insert(users).values(insertUser).returning();
+      return user;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set(userUpdate)
+        .where(eq(users.id, id))
+        .returning();
+      return updatedUser;
+    } catch (error) {
+      console.error("Error updating user:", error);
+      return undefined;
+    }
+  }
+
+  // Campaign methods
+  async getCampaign(id: number): Promise<Campaign | undefined> {
+    try {
+      const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+      return campaign;
+    } catch (error) {
+      console.error("Error retrieving campaign:", error);
+      return undefined;
+    }
+  }
+
+  async getCampaigns(): Promise<Campaign[]> {
+    try {
+      return await db.select().from(campaigns);
+    } catch (error) {
+      console.error("Error retrieving all campaigns:", error);
+      return [];
+    }
+  }
+
+  async getCampaignsByRestaurantId(restaurantId: number): Promise<Campaign[]> {
+    try {
+      // Ensure restaurantId is a number
+      const numRestaurantId = Number(restaurantId);
+      console.log(`Getting campaigns for restaurant ID ${numRestaurantId} (${typeof restaurantId})`);
+      
+      const result = await db
+        .select()
+        .from(campaigns)
+        .where(eq(campaigns.restaurantId, numRestaurantId));
+      
+      console.log(`Found ${result.length} campaigns for restaurant ID ${numRestaurantId}`);
+      if (result.length > 0) {
+        console.log("Restaurant campaigns:", result.map(c => ({id: c.id, title: c.title, restaurantId: c.restaurantId})));
+      } else {
+        console.log("No campaigns found for this restaurant.");
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`Error retrieving campaigns for restaurant ${restaurantId}:`, error);
+      return [];
+    }
+  }
+
+  async getActiveCampaigns(): Promise<Campaign[]> {
+    try {
+      const activeCampaigns = await db
+        .select()
+        .from(campaigns)
+        .where(eq(campaigns.status, "active"));
+      
+      console.log(`Found ${activeCampaigns.length} active campaigns`);
+      return activeCampaigns;
+    } catch (error) {
+      console.error("Error retrieving active campaigns:", error);
+      return [];
+    }
+  }
+
+  async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
+    try {
+      // Ensure restaurantId is a number
+      const numRestaurantId = Number(insertCampaign.restaurantId);
+      
+      console.log(`Creating campaign for restaurant ${numRestaurantId} (original type: ${typeof insertCampaign.restaurantId})`);
+      
+      // Create campaign with all data normalized
+      const campaignData = {
+        ...insertCampaign,
+        restaurantId: numRestaurantId,
+        location: insertCampaign.location || null,
+        maxPayoutPerInfluencer: insertCampaign.maxPayoutPerInfluencer || null,
+        maxBudget: insertCampaign.maxBudget || null
+      };
+      
+      const [campaign] = await db
+        .insert(campaigns)
+        .values(campaignData)
+        .returning();
+      
+      console.log(`Created campaign with ID ${campaign.id} for restaurant ${campaign.restaurantId}`);
+      
+      // Verify the campaign can be retrieved by restaurant ID
+      const restaurantCampaigns = await this.getCampaignsByRestaurantId(numRestaurantId);
+      console.log(`Verification: Restaurant ${numRestaurantId} has ${restaurantCampaigns.length} campaigns after creation`);
+      
+      return campaign;
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      throw error;
+    }
+  }
+
+  async updateCampaign(id: number, campaignUpdate: Partial<Campaign>): Promise<Campaign | undefined> {
+    try {
+      // Ensure restaurantId is a number if it's being updated
+      if (campaignUpdate.restaurantId) {
+        campaignUpdate.restaurantId = Number(campaignUpdate.restaurantId);
+      }
+      
+      const [updatedCampaign] = await db
+        .update(campaigns)
+        .set(campaignUpdate)
+        .where(eq(campaigns.id, id))
+        .returning();
+      
+      return updatedCampaign;
+    } catch (error) {
+      console.error(`Error updating campaign ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deleteCampaign(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(campaigns)
+        .where(eq(campaigns.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting campaign ${id}:`, error);
+      return false;
+    }
+  }
+
+  // Submission methods
+  async getSubmission(id: number): Promise<Submission | undefined> {
+    try {
+      const [submission] = await db.select().from(submissions).where(eq(submissions.id, id));
+      return submission;
+    } catch (error) {
+      console.error(`Error retrieving submission ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getSubmissions(): Promise<Submission[]> {
+    try {
+      return await db.select().from(submissions);
+    } catch (error) {
+      console.error("Error retrieving all submissions:", error);
+      return [];
+    }
+  }
+
+  async getSubmissionsByCampaignId(campaignId: number): Promise<Submission[]> {
+    try {
+      const numCampaignId = Number(campaignId);
+      return await db
+        .select()
+        .from(submissions)
+        .where(eq(submissions.campaignId, numCampaignId));
+    } catch (error) {
+      console.error(`Error retrieving submissions for campaign ${campaignId}:`, error);
+      return [];
+    }
+  }
+
+  async getSubmissionsByInfluencerId(influencerId: number): Promise<Submission[]> {
+    try {
+      const numInfluencerId = Number(influencerId);
+      return await db
+        .select()
+        .from(submissions)
+        .where(eq(submissions.influencerId, numInfluencerId));
+    } catch (error) {
+      console.error(`Error retrieving submissions for influencer ${influencerId}:`, error);
+      return [];
+    }
+  }
+
+  async getSubmissionsByRestaurantId(restaurantId: number): Promise<Submission[]> {
+    try {
+      // Use Number conversion for consistent comparison
+      const numRestaurantId = Number(restaurantId);
+      console.log(`Getting submissions for restaurant ID ${numRestaurantId} (${typeof restaurantId})`);
+      
+      // First get all campaigns belonging to the restaurant
+      const restaurantCampaigns = await this.getCampaignsByRestaurantId(numRestaurantId);
+      
+      if (restaurantCampaigns.length === 0) {
+        console.log(`No campaigns found for restaurant ${numRestaurantId}`);
+        return [];
+      }
+      
+      // Get all campaign IDs
+      const campaignIds = restaurantCampaigns.map(campaign => campaign.id);
+      console.log(`Found ${campaignIds.length} campaigns for restaurant ID ${numRestaurantId}: ${campaignIds.join(', ')}`);
+      
+      // Get all submissions for those campaigns
+      const result = await db
+        .select()
+        .from(submissions)
+        .where(inArray(submissions.campaignId, campaignIds));
+      
+      console.log(`Found ${result.length} submissions for restaurant ID ${numRestaurantId}`);
+      return result;
+    } catch (error) {
+      console.error(`Error retrieving submissions for restaurant ${restaurantId}:`, error);
+      return [];
+    }
+  }
+
+  async createSubmission(insertSubmission: InsertSubmission): Promise<Submission> {
+    try {
+      // Ensure IDs are numbers
+      const numCampaignId = Number(insertSubmission.campaignId);
+      const numInfluencerId = Number(insertSubmission.influencerId);
+      
+      const submissionData = {
+        ...insertSubmission,
+        campaignId: numCampaignId,
+        influencerId: numInfluencerId,
+        notes: insertSubmission.notes || null
+      };
+      
+      const [submission] = await db
+        .insert(submissions)
+        .values({
+          ...submissionData,
+          views: 0,
+          likes: 0,
+          earnings: 0
+        })
+        .returning();
+      
+      return submission;
+    } catch (error) {
+      console.error("Error creating submission:", error);
+      throw error;
+    }
+  }
+
+  async updateSubmission(id: number, submissionUpdate: Partial<Submission>): Promise<Submission | undefined> {
+    try {
+      // Convert IDs to numbers if present
+      if (submissionUpdate.campaignId) {
+        submissionUpdate.campaignId = Number(submissionUpdate.campaignId);
+      }
+      if (submissionUpdate.influencerId) {
+        submissionUpdate.influencerId = Number(submissionUpdate.influencerId);
+      }
+      
+      const [updatedSubmission] = await db
+        .update(submissions)
+        .set(submissionUpdate)
+        .where(eq(submissions.id, id))
+        .returning();
+      
+      return updatedSubmission;
+    } catch (error) {
+      console.error(`Error updating submission ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  // Private Invitation methods
+  async getPrivateInvitation(id: number): Promise<PrivateInvitation | undefined> {
+    try {
+      const [invitation] = await db.select().from(privateInvitations).where(eq(privateInvitations.id, id));
+      return invitation;
+    } catch (error) {
+      console.error(`Error retrieving private invitation ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getPrivateInvitationByCode(inviteCode: string): Promise<PrivateInvitation | undefined> {
+    try {
+      const [invitation] = await db
+        .select()
+        .from(privateInvitations)
+        .where(eq(privateInvitations.inviteCode, inviteCode));
+      return invitation;
+    } catch (error) {
+      console.error(`Error retrieving private invitation by code ${inviteCode}:`, error);
+      return undefined;
+    }
+  }
+
+  async getPrivateInvitationsByRestaurantId(restaurantId: number): Promise<PrivateInvitation[]> {
+    try {
+      const numRestaurantId = Number(restaurantId);
+      return await db
+        .select()
+        .from(privateInvitations)
+        .where(eq(privateInvitations.restaurantId, numRestaurantId));
+    } catch (error) {
+      console.error(`Error retrieving private invitations for restaurant ${restaurantId}:`, error);
+      return [];
+    }
+  }
+
+  async getPrivateInvitationsByInfluencerId(influencerId: number): Promise<PrivateInvitation[]> {
+    try {
+      const numInfluencerId = Number(influencerId);
+      return await db
+        .select()
+        .from(privateInvitations)
+        .where(eq(privateInvitations.influencerId, numInfluencerId));
+    } catch (error) {
+      console.error(`Error retrieving private invitations for influencer ${influencerId}:`, error);
+      return [];
+    }
+  }
+
+  async createPrivateInvitation(insertInvitation: InsertPrivateInvitation): Promise<PrivateInvitation> {
+    try {
+      // Ensure IDs are numbers
+      const numRestaurantId = Number(insertInvitation.restaurantId);
+      const numInfluencerId = Number(insertInvitation.influencerId);
+      
+      const invitationData = {
+        ...insertInvitation,
+        restaurantId: numRestaurantId,
+        influencerId: numInfluencerId,
+        imageUrl: insertInvitation.imageUrl || null
+      };
+      
+      const [invitation] = await db
+        .insert(privateInvitations)
+        .values(invitationData)
+        .returning();
+      
+      return invitation;
+    } catch (error) {
+      console.error("Error creating private invitation:", error);
+      throw error;
+    }
+  }
+
+  async updatePrivateInvitation(id: number, invitationUpdate: Partial<PrivateInvitation>): Promise<PrivateInvitation | undefined> {
+    try {
+      // Convert IDs to numbers if present
+      if (invitationUpdate.restaurantId) {
+        invitationUpdate.restaurantId = Number(invitationUpdate.restaurantId);
+      }
+      if (invitationUpdate.influencerId) {
+        invitationUpdate.influencerId = Number(invitationUpdate.influencerId);
+      }
+      
+      const [updatedInvitation] = await db
+        .update(privateInvitations)
+        .set(invitationUpdate)
+        .where(eq(privateInvitations.id, id))
+        .returning();
+      
+      return updatedInvitation;
+    } catch (error) {
+      console.error(`Error updating private invitation ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deletePrivateInvitation(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(privateInvitations)
+        .where(eq(privateInvitations.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting private invitation ${id}:`, error);
+      return false;
+    }
+  }
+
+  // Private Submission methods
+  async getPrivateSubmission(id: number): Promise<PrivateSubmission | undefined> {
+    try {
+      const [submission] = await db.select().from(privateSubmissions).where(eq(privateSubmissions.id, id));
+      return submission;
+    } catch (error) {
+      console.error(`Error retrieving private submission ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getPrivateSubmissionsByInvitationId(invitationId: number): Promise<PrivateSubmission[]> {
+    try {
+      const numInvitationId = Number(invitationId);
+      return await db
+        .select()
+        .from(privateSubmissions)
+        .where(eq(privateSubmissions.invitationId, numInvitationId));
+    } catch (error) {
+      console.error(`Error retrieving private submissions for invitation ${invitationId}:`, error);
+      return [];
+    }
+  }
+
+  async createPrivateSubmission(insertSubmission: InsertPrivateSubmission): Promise<PrivateSubmission> {
+    try {
+      // Ensure invitationId is a number
+      const numInvitationId = Number(insertSubmission.invitationId);
+      
+      const submissionData = {
+        ...insertSubmission,
+        invitationId: numInvitationId,
+        notes: insertSubmission.notes || null
+      };
+      
+      const [submission] = await db
+        .insert(privateSubmissions)
+        .values({
+          ...submissionData,
+          views: 0,
+          likes: 0,
+          earnings: 0
+        })
+        .returning();
+      
+      return submission;
+    } catch (error) {
+      console.error("Error creating private submission:", error);
+      throw error;
+    }
+  }
+
+  async updatePrivateSubmission(id: number, submissionUpdate: Partial<PrivateSubmission>): Promise<PrivateSubmission | undefined> {
+    try {
+      // Convert invitationId to number if present
+      if (submissionUpdate.invitationId) {
+        submissionUpdate.invitationId = Number(submissionUpdate.invitationId);
+      }
+      
+      const [updatedSubmission] = await db
+        .update(privateSubmissions)
+        .set(submissionUpdate)
+        .where(eq(privateSubmissions.id, id))
+        .returning();
+      
+      return updatedSubmission;
+    } catch (error) {
+      console.error(`Error updating private submission ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  // Performance Metrics methods
+  async getPerformanceMetric(id: number): Promise<PerformanceMetric | undefined> {
+    try {
+      const [metric] = await db.select().from(performanceMetrics).where(eq(performanceMetrics.id, id));
+      return metric;
+    } catch (error) {
+      console.error(`Error retrieving performance metric ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getPerformanceMetricsBySubmissionId(submissionId: number): Promise<PerformanceMetric[]> {
+    try {
+      const numSubmissionId = Number(submissionId);
+      return await db
+        .select()
+        .from(performanceMetrics)
+        .where(eq(performanceMetrics.submissionId, numSubmissionId));
+    } catch (error) {
+      console.error(`Error retrieving performance metrics for submission ${submissionId}:`, error);
+      return [];
+    }
+  }
+
+  async createPerformanceMetric(insertMetric: InsertPerformanceMetric): Promise<PerformanceMetric> {
+    try {
+      // Ensure IDs are numbers
+      const numSubmissionId = Number(insertMetric.submissionId);
+      const numUpdatedBy = Number(insertMetric.updatedBy);
+      
+      const metricData = {
+        ...insertMetric,
+        submissionId: numSubmissionId,
+        updatedBy: numUpdatedBy
+      };
+      
+      const [metric] = await db
+        .insert(performanceMetrics)
+        .values(metricData)
+        .returning();
+      
+      return metric;
+    } catch (error) {
+      console.error("Error creating performance metric:", error);
+      throw error;
+    }
+  }
+
+  // Private Performance Metrics methods
+  async getPrivatePerformanceMetric(id: number): Promise<PrivatePerformanceMetric | undefined> {
+    try {
+      const [metric] = await db.select().from(privatePerformanceMetrics).where(eq(privatePerformanceMetrics.id, id));
+      return metric;
+    } catch (error) {
+      console.error(`Error retrieving private performance metric ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getPrivatePerformanceMetricsBySubmissionId(privateSubmissionId: number): Promise<PrivatePerformanceMetric[]> {
+    try {
+      const numSubmissionId = Number(privateSubmissionId);
+      return await db
+        .select()
+        .from(privatePerformanceMetrics)
+        .where(eq(privatePerformanceMetrics.privateSubmissionId, numSubmissionId));
+    } catch (error) {
+      console.error(`Error retrieving private performance metrics for submission ${privateSubmissionId}:`, error);
+      return [];
+    }
+  }
+
+  async createPrivatePerformanceMetric(insertMetric: InsertPrivatePerformanceMetric): Promise<PrivatePerformanceMetric> {
+    try {
+      // Ensure IDs are numbers
+      const numSubmissionId = Number(insertMetric.privateSubmissionId);
+      const numUpdatedBy = Number(insertMetric.updatedBy);
+      
+      const metricData = {
+        ...insertMetric,
+        privateSubmissionId: numSubmissionId,
+        updatedBy: numUpdatedBy
+      };
+      
+      const [metric] = await db
+        .insert(privatePerformanceMetrics)
+        .values(metricData)
+        .returning();
+      
+      return metric;
+    } catch (error) {
+      console.error("Error creating private performance metric:", error);
+      throw error;
+    }
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();
