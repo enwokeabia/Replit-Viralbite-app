@@ -92,41 +92,90 @@ export default function AuthPage() {
       console.log("Attempting emergency login...");
       // First, clear any previous tokens to avoid conflicts
       localStorage.removeItem("authToken");
+      localStorage.removeItem("testToken");
       
       // Default to admin if no role specified
       const roleParam = role || "admin";
       
-      // Call the emergency login endpoint
-      const response = await fetch(`/api/emergency-login?role=${roleParam}`);
+      // Map of tokens to use for emergency login
+      const emergencyTokens = {
+        admin: "test-token-123456",
+        restaurant: "test-restaurant-token",
+        influencer: "test-influencer-token",
+        restaurant2: "test-restaurant2-token"
+      };
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Emergency login successful:", data);
+      // If we have a predefined token for this role, set it directly
+      const token = emergencyTokens[roleParam as keyof typeof emergencyTokens];
+      
+      if (token) {
+        // Store both types of tokens for maximum compatibility
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("testToken", token);
         
-        // Store the token in localStorage
-        localStorage.setItem("authToken", data.token);
+        // Call the emergency login endpoint to get the user data
+        const response = await fetch(`/api/emergency-login?role=${roleParam}`);
         
-        // Manually set the user data
-        if (data.user) {
-          queryClient.setQueryData(["/api/user"], data.user);
-          queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Emergency login successful:", data);
           
+          // Manually set the user data
+          if (data.user) {
+            queryClient.setQueryData(["/api/user"], data.user);
+            queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+            
+            toast({
+              title: "EMERGENCY AUTH ACTIVATED",
+              description: `Logged in as ${data.user.name} (${data.user.role})`,
+              variant: "default",
+            });
+            
+            // Redirect to home page as we're now authenticated
+            navigate("/");
+          }
+        } else {
+          console.error("Emergency login failed:", await response.text());
           toast({
-            title: "EMERGENCY AUTH ACTIVATED",
-            description: `Logged in as ${data.user.name} (${data.user.role})`,
-            variant: "default",
+            title: "Emergency login failed",
+            description: "Please try a regular login",
+            variant: "destructive",
           });
-          
-          // Redirect to home page as we're now authenticated
-          navigate("/");
         }
       } else {
-        console.error("Emergency login failed:", await response.text());
-        toast({
-          title: "Emergency login failed",
-          description: "Please try a regular login",
-          variant: "destructive",
-        });
+        // Fallback to API-based emergency login if no predefined token
+        const response = await fetch(`/api/emergency-login?role=${roleParam}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Emergency login successful:", data);
+          
+          // Store the token in localStorage
+          localStorage.setItem("authToken", data.token);
+          localStorage.setItem("testToken", data.token);
+          
+          // Manually set the user data
+          if (data.user) {
+            queryClient.setQueryData(["/api/user"], data.user);
+            queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+            
+            toast({
+              title: "EMERGENCY AUTH ACTIVATED",
+              description: `Logged in as ${data.user.name} (${data.user.role})`,
+              variant: "default",
+            });
+            
+            // Redirect to home page as we're now authenticated
+            navigate("/");
+          }
+        } else {
+          console.error("Emergency login failed:", await response.text());
+          toast({
+            title: "Emergency login failed",
+            description: "Please try a regular login",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Error in emergency login:", error);
@@ -141,16 +190,11 @@ export default function AuthPage() {
   // Open emergency login dialog
   const [showEmergencyOptions, setShowEmergencyOptions] = useState(false);
   
-  // Clear tokens and redirect if logged in
+  // Redirect if logged in, but don't clear tokens on page load anymore
   useEffect(() => {
-    // Clear any existing tokens when loading auth page to prevent auto-login
-    if (window.location.pathname === "/auth") {
-      console.log("Auth page loaded, clearing tokens");
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("testToken");
-    }
-    
+    // Only redirect if the user is already authenticated
     if (user) {
+      console.log("User already authenticated, redirecting to home");
       navigate("/");
     }
   }, [user, navigate]);
