@@ -158,6 +158,19 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(testInfluencerUser.id, testInfluencerUser);
+    
+    // Create second restaurant user for multi-restaurant testing
+    const testRestaurant2User: User = {
+      id: this.userIdCounter++, 
+      username: "restaurant2",
+      password: adminPasswordHash, // Same password for testing
+      name: "Second Restaurant",
+      email: "second@restaurant.com",
+      role: "restaurant",
+      profilePicture: null,
+      createdAt: new Date()
+    };
+    this.users.set(testRestaurant2User.id, testRestaurant2User);
   }
 
   // User methods
