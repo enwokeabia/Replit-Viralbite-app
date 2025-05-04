@@ -92,3 +92,36 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// Helper functions for auth token management
+export function setAuthToken(token: string) {
+  localStorage.setItem("authToken", token);
+  console.log("Auth token stored:", token);
+}
+
+export function getStoredAuthToken(): string | null {
+  return localStorage.getItem("authToken");
+}
+
+export function setTestToken(token: string) {
+  localStorage.setItem("testToken", token);
+  console.log("Test token stored:", token);
+}
+
+export function clearTokens() {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("testToken");
+  console.log("Auth tokens cleared");
+}
+
+// For quick testing, set a default token based on the role
+export function setDefaultToken(role: "admin" | "restaurant" | "influencer" = "admin") {
+  const tokens = {
+    admin: "test-token-123456",
+    restaurant: "test-restaurant-token",
+    influencer: "test-influencer-token"
+  };
+  
+  setTestToken(tokens[role]);
+  console.log(`Default ${role} token set:`, tokens[role]);
+}

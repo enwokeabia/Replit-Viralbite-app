@@ -251,14 +251,17 @@ export class MemStorage implements IStorage {
     const id = this.campaignIdCounter++;
     const createdAt = new Date();
     
-    console.log(`Creating campaign with ID ${id} for restaurant ${insertCampaign.restaurantId}`);
+    // Ensure restaurantId is stored as a number
+    const restaurantId = Number(insertCampaign.restaurantId);
+    
+    console.log(`Creating campaign with ID ${id} for restaurant ${restaurantId} (original type: ${typeof insertCampaign.restaurantId})`);
     console.log(`Campaign ID counter is now ${this.campaignIdCounter}`);
     console.log(`Current campaigns in store: ${this.campaigns.size}`);
     
     // Create a campaign with all required fields explicitly assigned
     const campaign: Campaign = {
       id,
-      restaurantId: insertCampaign.restaurantId,
+      restaurantId, // Using the converted number
       title: insertCampaign.title,
       description: insertCampaign.description,
       location: insertCampaign.location || null,
@@ -276,6 +279,14 @@ export class MemStorage implements IStorage {
     
     console.log(`After creation, campaigns in store: ${this.campaigns.size}`);
     console.log(`All campaign IDs: ${Array.from(this.campaigns.keys()).join(', ')}`);
+    
+    // Verify restaurant ID is correctly stored - this is crucial for filtering
+    console.log(`Verifying campaign ${id}:`);
+    console.log(`- Restaurant ID: ${campaign.restaurantId} (${typeof campaign.restaurantId})`);
+    
+    // Verify the campaign can be retrieved by restaurant ID
+    const restaurantCampaigns = await this.getCampaignsByRestaurantId(restaurantId);
+    console.log(`Verification: Restaurant ${restaurantId} has ${restaurantCampaigns.length} campaigns after creation`);
     
     return campaign;
   }

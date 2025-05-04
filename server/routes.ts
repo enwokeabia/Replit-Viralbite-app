@@ -380,20 +380,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/campaigns", requireAuth, async (req, res) => {
-    // Check if the user has restaurant role, but allow for now if not
+    // Check if the user has restaurant role
     const user = req.user as User;
     console.log("User creating campaign:", user.username, "with role:", user.role);
+    
     if (user.role !== "restaurant") {
-      console.warn(`User ${user.username} with role ${user.role} is creating a campaign`);
+      console.warn(`User ${user.username} with role ${user.role} attempted to create a campaign`);
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "Only restaurant users can create campaigns"
+      });
     }
+    
     try {
       console.log("Received campaign creation request:", req.body);
-      const user = req.user as User;
       
-      // Add restaurantId from authenticated user
+      // Ensure restaurantId is explicitly the user's ID as a number
       const campaignDataWithRestaurantId = {
         ...req.body,
-        restaurantId: user.id
+        restaurantId: Number(user.id) // Force conversion to number
       };
       
       console.log("Validating campaign data:", campaignDataWithRestaurantId);
@@ -404,6 +409,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const campaign = await storage.createCampaign(campaignData);
         console.log("Campaign created successfully:", campaign);
+        
+        // Double-verify that the created campaign has the correct restaurant ID
+        if (campaign.restaurantId !== user.id) {
+          console.error(`ERROR: Created campaign has restaurant ID ${campaign.restaurantId} but user ID is ${user.id}`);
+        }
+        
+        // Show all campaigns for this restaurant after creation
+        const restaurantCampaigns = await storage.getCampaignsByRestaurantId(user.id);
+        console.log(`After creation, restaurant ${user.id} has ${restaurantCampaigns.length} campaigns: ${restaurantCampaigns.map(c => c.id).join(', ')}`);
         
         res.status(201).json(campaign);
       } catch (validationError) {
