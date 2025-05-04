@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash, Eye, Users, MapPin } from "lucide-react";
+import { Edit2, Trash, Eye, Users, MapPin, Clock, CheckCircle, XCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,10 +20,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Campaign } from "@shared/schema";
+import { Campaign, Submission } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CampaignApplyModal } from "./campaign-apply-modal";
+import { useQuery } from "@tanstack/react-query";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -35,6 +36,15 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
+
+  // Get user submissions for this campaign if in influencer view
+  const { data: submissions } = useQuery<Submission[]>({
+    queryKey: ['/api/submissions'],
+    enabled: viewType === 'influencer',
+  });
+  
+  // Check if the influencer has already submitted to this campaign
+  const userSubmission = submissions?.find(sub => sub.campaignId === campaign.id);
 
   const statusColor = {
     active: "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200",
@@ -173,7 +183,29 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
+            ) : userSubmission ? (
+              // Show submission status if the user has already applied to this campaign
+              <Button
+                className={
+                  userSubmission.status === "approved"
+                    ? "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white shadow-sm"
+                    : userSubmission.status === "rejected"
+                    ? "bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-sm"
+                    : "bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600 text-white shadow-sm"
+                }
+                size="sm"
+                disabled={true}
+              >
+                {userSubmission.status === "approved" ? (
+                  <><CheckCircle className="h-4 w-4 mr-1" /> Approved</>
+                ) : userSubmission.status === "rejected" ? (
+                  <><XCircle className="h-4 w-4 mr-1" /> Rejected</>
+                ) : (
+                  <><Clock className="h-4 w-4 mr-1" /> Pending</>
+                )}
+              </Button>
             ) : (
+              // Apply button for campaigns the user hasn't applied to yet
               <Button
                 className="bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white shadow-sm"
                 size="sm"

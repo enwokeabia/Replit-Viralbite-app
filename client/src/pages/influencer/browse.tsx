@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CampaignCard } from "@/components/campaign-card";
-import { Campaign } from "@shared/schema";
+import { Campaign, Submission } from "@shared/schema";
 import { Loader2, Search, Filter, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
