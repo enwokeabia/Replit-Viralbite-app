@@ -12,6 +12,14 @@ import { z } from "zod";
 import { insertUserSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 // Extended schema with validation
 const loginSchema = z.object({
@@ -78,58 +86,63 @@ export default function AuthPage() {
     });
   };
 
-  // Try emergency bypass login on component mount
-  useEffect(() => {
-    async function tryEmergencyLogin() {
-      try {
-        // Only try emergency login if not already logged in
-        if (!user) {
-          console.log("Attempting emergency login...");
-          // First, clear any previous tokens to avoid conflicts
-          localStorage.removeItem("authToken");
+  // Make emergency login a manual process with role selection 
+  const handleEmergencyLogin = async (roleId?: number) => {
+    try {
+      console.log("Attempting emergency login...");
+      // First, clear any previous tokens to avoid conflicts
+      localStorage.removeItem("authToken");
+      
+      // Default to admin (1) if no role specified
+      const userId = roleId || 1;
+      
+      // Call the emergency login endpoint
+      const response = await fetch(`/api/emergency-login?userId=${userId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Emergency login successful:", data);
+        
+        // Store the token in localStorage
+        localStorage.setItem("authToken", data.token);
+        
+        // Also store the test token as backup
+        localStorage.setItem("testToken", "test-token-123456");
+        
+        // Manually set the user data
+        if (data.user) {
+          queryClient.setQueryData(["/api/user"], data.user);
+          queryClient.invalidateQueries({ queryKey: ["/api/user"] });
           
-          // Call the emergency login endpoint
-          const response = await fetch("/api/emergency-login?userId=1");
+          toast({
+            title: "EMERGENCY AUTH ACTIVATED",
+            description: `Logged in as ${data.user.name} (${data.user.role})`,
+            variant: "default",
+          });
           
-          if (response.ok) {
-            const data = await response.json();
-            console.log("Emergency login successful:", data);
-            
-            // Store the token in localStorage
-            localStorage.setItem("authToken", data.token);
-            
-            // Also store the test token as backup
-            localStorage.setItem("testToken", "test-token-123456");
-            
-            // Force a reload to ensure new token is used in all requests
-            setTimeout(() => {
-              // Manually set the user data
-              if (data.user) {
-                queryClient.setQueryData(["/api/user"], data.user);
-                queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-                
-                toast({
-                  title: "EMERGENCY AUTH ACTIVATED",
-                  description: `Logged in as ${data.user.name} (${data.user.role})`,
-                  variant: "default",
-                });
-                
-                // Force redirect to home page as we're now authenticated
-                navigate("/");
-              }
-            }, 500);
-          } else {
-            console.error("Emergency login failed:", await response.text());
-          }
+          // Redirect to home page as we're now authenticated
+          navigate("/");
         }
-      } catch (error) {
-        console.error("Error in emergency login:", error);
+      } else {
+        console.error("Emergency login failed:", await response.text());
+        toast({
+          title: "Emergency login failed",
+          description: "Please try a regular login",
+          variant: "destructive",
+        });
       }
+    } catch (error) {
+      console.error("Error in emergency login:", error);
+      toast({
+        title: "Emergency login error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
-    
-    // Call the emergency login function
-    tryEmergencyLogin();
-  }, [user, toast, navigate]);
+  };
+
+  // Open emergency login dialog
+  const [showEmergencyOptions, setShowEmergencyOptions] = useState(false);
   
   // Redirect if logged in
   useEffect(() => {
@@ -208,6 +221,15 @@ export default function AuthPage() {
                 >
                   Don't have an account? Sign up
                 </button>
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <button
+                    type="button" 
+                    onClick={() => setShowEmergencyOptions(true)}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Having trouble? Use emergency login
+                  </button>
+                </div>
               </div>
             </>
           ) : (
@@ -347,6 +369,15 @@ export default function AuthPage() {
                 >
                   Already have an account? Log in
                 </button>
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <button
+                    type="button" 
+                    onClick={() => setShowEmergencyOptions(true)}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Having trouble? Use emergency login
+                  </button>
+                </div>
               </div>
             </>
           )}
