@@ -27,7 +27,8 @@ global.authTokens = authTokens;
 
 // Add standard test tokens for quick access
 authTokens.set('test-token-123456', 1); // Admin
-authTokens.set('test-restaurant-token', 2); // Restaurant user
+authTokens.set('test-restaurant-token', 2); // Restaurant user (johnjones)
+authTokens.set('test-restaurant2-token', 4); // Second restaurant user (restaurant2)
 authTokens.set('test-influencer-token', 3); // Influencer user
 
 // Declare global namespace to avoid TypeScript errors
