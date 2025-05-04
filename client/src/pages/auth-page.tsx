@@ -87,17 +87,17 @@ export default function AuthPage() {
   };
 
   // Make emergency login a manual process with role selection 
-  const handleEmergencyLogin = async (roleId?: number) => {
+  const handleEmergencyLogin = async (role?: string) => {
     try {
       console.log("Attempting emergency login...");
       // First, clear any previous tokens to avoid conflicts
       localStorage.removeItem("authToken");
       
-      // Default to admin (1) if no role specified
-      const userId = roleId || 1;
+      // Default to admin if no role specified
+      const roleParam = role || "admin";
       
       // Call the emergency login endpoint
-      const response = await fetch(`/api/emergency-login?userId=${userId}`);
+      const response = await fetch(`/api/emergency-login?role=${roleParam}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -105,9 +105,6 @@ export default function AuthPage() {
         
         // Store the token in localStorage
         localStorage.setItem("authToken", data.token);
-        
-        // Also store the test token as backup
-        localStorage.setItem("testToken", "test-token-123456");
         
         // Manually set the user data
         if (data.user) {
@@ -438,7 +435,7 @@ export default function AuthPage() {
               variant="outline" 
               className="justify-start text-left font-normal"
               onClick={() => {
-                handleEmergencyLogin(1);
+                handleEmergencyLogin("admin");
                 setShowEmergencyOptions(false);
               }}
             >

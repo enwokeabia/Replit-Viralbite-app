@@ -141,7 +141,7 @@ export function Sidebar({ className }: SidebarProps) {
             {navigationItems.map((item) => (
               <li key={item.path}>
                 <Link href={item.path}>
-                  <a
+                  <div
                     className={cn(
                       "flex items-center space-x-3 px-3 py-2 rounded-md transition-colors",
                       location === item.path
@@ -151,7 +151,7 @@ export function Sidebar({ className }: SidebarProps) {
                   >
                     {item.icon}
                     <span>{item.label}</span>
-                  </a>
+                  </div>
                 </Link>
               </li>
             ))}
