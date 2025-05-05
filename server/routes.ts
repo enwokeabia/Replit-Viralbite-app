@@ -1416,6 +1416,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick restaurant user creator endpoint - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-restaurant2", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { users } = await import('@shared/schema');
+      const { scrypt, randomBytes } = await import('crypto');
+      const { promisify } = await import('util');
+      
+      const scryptAsync = promisify(scrypt);
+      
+      // Hash password function
+      async function hashPassword(password: string) {
+        const salt = randomBytes(16).toString("hex");
+        const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+        return `${buf.toString("hex")}.${salt}`;
+      }
+
+      // Create a "Second Restaurant" user
+      const [user] = await db.insert(users).values({
+        username: "restaurant2",
+        email: "restaurant2@example.com",
+        password: await hashPassword("Password"),
+        role: "restaurant",
+        profileImageUrl: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+        bio: "Innovative Thai fusion restaurant with a modern twist on traditional recipes.",
+        createdAt: new Date()
+      }).returning();
+
+      return res.json({
+        message: "Second Restaurant user created successfully",
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role
+        }
+      });
+    } catch (error: any) {
+      console.error("Error creating restaurant user:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
+  // Quick influencer user creator endpoint - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-influencer", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { users } = await import('@shared/schema');
+      const { scrypt, randomBytes } = await import('crypto');
+      const { promisify } = await import('util');
+      
+      const scryptAsync = promisify(scrypt);
+      
+      // Hash password function
+      async function hashPassword(password: string) {
+        const salt = randomBytes(16).toString("hex");
+        const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+        return `${buf.toString("hex")}.${salt}`;
+      }
+
+      // Create a Janet influencer user
+      const [user] = await db.insert(users).values({
+        username: "Janet",
+        email: "janet@example.com",
+        password: await hashPassword("Password"),
+        role: "influencer",
+        profileImageUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+        bio: "Lifestyle and food influencer passionate about discovering new culinary experiences!",
+        createdAt: new Date()
+      }).returning();
+
+      return res.json({
+        message: "Janet influencer user created successfully",
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role
+        }
+      });
+    } catch (error: any) {
+      console.error("Error creating influencer user:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
   // Quick campaign creator endpoint - DO NOT USE IN PRODUCTION
   app.get("/api/debug/create-dirtyhabit", async (req, res) => {
     try {
@@ -1425,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create a Dirty Habit campaign
       const [campaign] = await db.insert(campaigns).values({
-        restaurantId: 2, // Restaurant user has ID 2
+        restaurantId: 10, // Dirtyhabit restaurant user has ID 10
         title: "Dirty Habit Chef's Special",
         description: "Promote our new chef's special menu featuring locally-sourced ingredients and innovative cocktails.",
         imageUrl: "https://images.unsplash.com/photo-1554306297-0c86e837d24b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
