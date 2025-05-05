@@ -135,7 +135,8 @@ export function setDefaultToken(role: "admin" | "restaurant" | "influencer" = "a
 export function initializeAuthToken() {
   const existingToken = localStorage.getItem("authToken") || localStorage.getItem("testToken");
   if (!existingToken) {
-    console.log("No auth token found, setting default admin token");
-    setDefaultToken("admin");
+    console.log("No auth token found, redirecting to login");
+    // Don't set any token by default - let the user choose which role to log in as
+    clearTokens();
   }
 }
