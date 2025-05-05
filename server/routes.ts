@@ -1432,17 +1432,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import needed dependencies
       const { db } = await import('./db');
       const { users } = await import('@shared/schema');
-      const { scrypt, randomBytes } = await import('crypto');
-      const { promisify } = await import('util');
-      
-      const scryptAsync = promisify(scrypt);
-      
-      // Hash password function
-      async function hashPassword(password: string) {
-        const salt = randomBytes(16).toString("hex");
-        const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-        return `${buf.toString("hex")}.${salt}`;
-      }
 
       // Create a "Second Restaurant" user
       const [user] = await db.insert(users).values({
@@ -1475,17 +1464,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import needed dependencies
       const { db } = await import('./db');
       const { users } = await import('@shared/schema');
-      const { scrypt, randomBytes } = await import('crypto');
-      const { promisify } = await import('util');
-      
-      const scryptAsync = promisify(scrypt);
-      
-      // Hash password function
-      async function hashPassword(password: string) {
-        const salt = randomBytes(16).toString("hex");
-        const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-        return `${buf.toString("hex")}.${salt}`;
-      }
 
       // Create a Janet influencer user
       const [user] = await db.insert(users).values({
@@ -1508,6 +1486,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error creating influencer user:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
+  // Quick campaign creator endpoint for Restaurant2 - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-restaurant2-campaign", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { campaigns } = await import('@shared/schema');
+
+      // Create a Restaurant2 campaign
+      const [campaign] = await db.insert(campaigns).values({
+        restaurantId: 12, // Restaurant2 user has ID 12
+        title: "Thai Fusion Cooking Class",
+        description: "Promote our interactive Thai cooking classes where participants learn to make authentic pad thai and green curry.",
+        imageUrl: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+        rewardAmount: 75,
+        rewardViews: 10000,
+        maxPayoutPerInfluencer: 300,
+        maxBudget: 1500,
+        status: "active",
+        createdAt: new Date()
+      }).returning();
+
+      return res.json({
+        message: "Restaurant2 campaign created successfully",
+        campaign
+      });
+    } catch (error: any) {
+      console.error("Error creating Restaurant2 campaign:", error);
       return res.status(500).json({ error: "Internal server error", message: error?.message });
     }
   });
