@@ -1241,6 +1241,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes for performance metrics
+  app.get("/api/admin/campaigns", requireAdminRole, async (req, res) => {
+    try {
+      const campaigns = await storage.getAllCampaigns();
+      console.log(`Fetched ${campaigns.length} campaigns for admin view`);
+      res.json(campaigns);
+    } catch (error) {
+      console.error("Error fetching campaigns for admin:", error);
+      return res.status(500).send("Internal server error");
+    }
+  });
+  
   app.get("/api/admin/submissions", requireAdminRole, async (req, res) => {
     try {
       const submissions = await storage.getSubmissions();

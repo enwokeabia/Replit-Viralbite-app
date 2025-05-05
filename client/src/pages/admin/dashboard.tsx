@@ -1,16 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import { CircleCheckBig, Database, Loader2, LogOut } from "lucide-react";
+import { CircleCheckBig, Database, Loader2, LogOut, ListFilter, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { PerformanceUpdateModal } from "@/components/admin/performance-update-modal";
 import { SubmissionTable } from "@/components/admin/submission-table";
-import { Submission, PrivateSubmission } from "@shared/schema";
+import { Submission, PrivateSubmission, Campaign } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
@@ -19,6 +21,20 @@ export default function AdminDashboard() {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [selectedPrivateSubmission, setSelectedPrivateSubmission] = useState<PrivateSubmission | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  
+  // Query to fetch all campaigns
+  const {
+    data: campaigns,
+    isLoading: isLoadingCampaigns,
+    isError: isErrorCampaigns,
+  } = useQuery<Campaign[]>({
+    queryKey: ["/api/admin/campaigns"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/campaigns");
+      if (!res.ok) throw new Error("Failed to fetch campaigns");
+      return res.json();
+    },
+  });
 
   // Query to fetch all submissions
   const {
@@ -127,10 +143,10 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {isLoadingSubmissions ? (
+                  {isLoadingCampaigns ? (
                     <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
                   ) : (
-                    new Set(submissions?.map(s => s.campaignId)).size || 0
+                    campaigns?.length || 0
                   )}
                 </p>
               </CardContent>
@@ -167,17 +183,78 @@ export default function AdminDashboard() {
             </Card>
           </div>
           
-          <Tabs defaultValue="public" className="w-full">
-            <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6">
+          <Tabs defaultValue="campaigns" className="w-full">
+            <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-6">
+              <TabsTrigger value="campaigns" className="flex items-center">
+                <ListFilter className="h-4 w-4 mr-2" />
+                All Campaigns
+              </TabsTrigger>
               <TabsTrigger value="public" className="flex items-center">
                 <Database className="h-4 w-4 mr-2" />
-                Public Campaigns
+                Public Submissions
               </TabsTrigger>
               <TabsTrigger value="private" className="flex items-center">
                 <CircleCheckBig className="h-4 w-4 mr-2" />
-                Private Invitations
+                Private Submissions
               </TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="campaigns" className="space-y-4">
+              {isLoadingCampaigns ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                </div>
+              ) : isErrorCampaigns ? (
+                <div className="text-center py-8 text-red-500">
+                  Error loading campaigns. Please try again.
+                </div>
+              ) : (
+                <div className="rounded-md border border-purple-200 overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-purple-50">
+                      <TableRow>
+                        <TableHead className="w-[80px]">ID</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Restaurant</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Reward</TableHead>
+                        <TableHead>Created</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {campaigns && campaigns.length > 0 ? (
+                        campaigns.map((campaign) => (
+                          <TableRow key={campaign.id} className="hover:bg-purple-50">
+                            <TableCell className="font-medium">{campaign.id}</TableCell>
+                            <TableCell>{campaign.title}</TableCell>
+                            <TableCell>{campaign.restaurantId}</TableCell>
+                            <TableCell>
+                              <Badge
+                                className={`
+                                  ${campaign.status === 'active' ? 'bg-green-100 text-green-800' : ''}
+                                  ${campaign.status === 'draft' ? 'bg-amber-100 text-amber-800' : ''}
+                                  ${campaign.status === 'ended' ? 'bg-slate-100 text-slate-800' : ''}
+                                `}
+                              >
+                                {campaign.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>${campaign.rewardAmount} per {campaign.rewardViews} views</TableCell>
+                            <TableCell>{new Date(campaign.createdAt).toLocaleDateString()}</TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                            No campaigns found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
             
             <TabsContent value="public" className="space-y-4">
               {isLoadingSubmissions ? (
