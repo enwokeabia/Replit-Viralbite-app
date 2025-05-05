@@ -1491,7 +1491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quick campaign creator endpoint for Restaurant2 - DO NOT USE IN PRODUCTION
-  app.get("/api/debug/create-restaurant2-campaign", async (req, res) => {
+  app.get("/api/debug/quick-create-thai-campaign", async (req, res) => {
     try {
       // Import needed dependencies
       const { db } = await import('./db');
