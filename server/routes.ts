@@ -1552,6 +1552,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick submission creator endpoint - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-test-submission", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { submissions } = await import('@shared/schema');
+
+      // Create a submission from the test influencer to the Dirty Habit campaign
+      const [submission] = await db.insert(submissions).values({
+        campaignId: 13, // Dirty Habit campaign (the latest one we created)
+        influencerId: 13, // Janet influencer user
+        instagramUrl: "https://www.instagram.com/p/CgZXW3TveUj/",
+        notes: "This is a test submission for the Dirty Habit campaign",
+        status: "approved", // Start as approved for testing
+        views: 2500, // Initial views
+        likes: 150, // Initial likes
+        createdAt: new Date()
+      }).returning();
+
+      return res.json({
+        message: "Test submission created successfully",
+        submission
+      });
+    } catch (error: any) {
+      console.error("Error creating test submission:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
+  // Test performance metric creator - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-test-metric", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { performanceMetrics } = await import('@shared/schema');
+
+      // Create a performance metric for our test submission
+      // We'll use the submission we just created and calculate earnings based on campaign reward rate
+      const submissionId = 2;
+      const viewCount = 5000;
+      const likeCount = 300;
+      
+      // For our test, we'll assume the campaign reward rate is $50 per 5000 views
+      // Calculate earnings based on views (campaign had 50 for 5000 views)
+      const calculatedEarnings = (viewCount / 5000) * 50;
+
+      const [metric] = await db.insert(performanceMetrics).values({
+        submissionId: submissionId,
+        viewCount: viewCount,
+        likeCount: likeCount,
+        calculatedEarnings: calculatedEarnings,
+        updatedBy: 1, // Admin user ID
+      }).returning();
+
+      return res.json({
+        message: "Test performance metric created successfully",
+        metric,
+        calculatedEarnings
+      });
+    } catch (error: any) {
+      console.error("Error creating test performance metric:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
   // Emergency DB inspection endpoint - DO NOT USE IN PRODUCTION
   app.get("/api/debug/db-check", async (req, res) => {
     try {
