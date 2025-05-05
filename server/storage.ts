@@ -682,6 +682,20 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAllCampaigns(): Promise<Campaign[]> {
+    try {
+      const allCampaigns = await db
+        .select()
+        .from(campaigns);
+      
+      console.log(`Found ${allCampaigns.length} total campaigns`);
+      return allCampaigns;
+    } catch (error) {
+      console.error("Error retrieving all campaigns:", error);
+      return [];
+    }
+  }
+
   async createCampaign(insertCampaign: InsertCampaign): Promise<Campaign> {
     try {
       // Ensure restaurantId is a number
