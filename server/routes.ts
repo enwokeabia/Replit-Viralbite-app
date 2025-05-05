@@ -466,12 +466,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Restaurant campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
 
         return res.json(campaigns);
-      } else {
-        // Influencer users see all campaigns
-        console.log(`Fetching all campaigns for influencer user ${user.id} (${user.username})`);
+      } else if (user.role === "admin") {
+        // Admin users see all campaigns
+        console.log(`Fetching all campaigns for admin user ${user.id} (${user.username})`);
 
         const campaigns = await storage.getAllCampaigns();
-        console.log(`Found ${campaigns.length} campaigns`);
+        console.log(`Found ${campaigns.length} total campaigns`);
+        console.log(`Campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
+        
+        return res.json(campaigns);
+      } else {
+        // Influencer users see only active campaigns
+        console.log(`Fetching active campaigns for influencer user ${user.id} (${user.username})`);
+
+        const campaigns = await storage.getActiveCampaigns();
+        console.log(`Found ${campaigns.length} active campaigns`);
         console.log(`Campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
 
         return res.json(campaigns);
