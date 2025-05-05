@@ -86,9 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // Clear the auth token from localStorage
+      // Clear both auth and test tokens from localStorage
       localStorage.removeItem("authToken");
-      console.log("Removed auth token from localStorage");
+      localStorage.removeItem("testToken");
+      localStorage.removeItem("userData");
+      console.log("Cleared all auth tokens from localStorage");
       
       try {
         // Also attempt to log out from session-based auth
