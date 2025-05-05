@@ -8,12 +8,19 @@ export default function HomePage() {
   const [, navigate] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && user) {
-      // Redirect based on user role
-      if (user.role === "restaurant") {
-        navigate("/restaurant/dashboard");
-      } else if (user.role === "influencer") {
-        navigate("/influencer/dashboard");
+    if (!isLoading) {
+      if (user) {
+        // Redirect based on user role
+        if (user.role === "restaurant") {
+          navigate("/restaurant/dashboard");
+        } else if (user.role === "influencer") {
+          navigate("/influencer/dashboard");
+        } else if (user.role === "admin") {
+          navigate("/admin");
+        }
+      } else {
+        // If no user is found, redirect to auth page
+        navigate("/auth");
       }
     }
   }, [user, isLoading, navigate]);

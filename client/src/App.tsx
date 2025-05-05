@@ -68,21 +68,16 @@ function Router() {
 
 function AuthInitializer() {
   useEffect(() => {
-    // We will NOT auto-initialize auth tokens anymore
-    // This prevents the auth page from immediately redirecting
-    // Users can still manually log in via the auth page
-    
-    // Check the URL to see if we should avoid auto-auth
+    // Check if we're on the auth or emergency login page
     const isAuthPage = window.location.pathname.includes('/auth');
+    const isEmergencyPage = window.location.pathname.includes('/emergency-login');
     
-    if (!isAuthPage) {
-      // Only initialize auto-auth if we're not on the auth page
+    // If we're not on auth pages, always initialize a token
+    if (!isAuthPage && !isEmergencyPage) {
+      console.log("Initializing auth token for non-auth page");
       initializeAuthToken();
     } else {
-      console.log("Skipping auto-auth on auth page to prevent immediate redirect");
-      // Remove any existing tokens when visiting auth page
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("testToken");
+      console.log("On auth page, not auto-initializing token");
     }
   }, []);
   
