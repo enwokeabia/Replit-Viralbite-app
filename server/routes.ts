@@ -1581,6 +1581,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test submission update with earnings - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/update-submission-earnings", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { submissions } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      // Get the latest submission
+      const submissionId = 2;
+      
+      // Get current metrics
+      const viewCount = 5000;
+      const likeCount = 300;
+      const calculatedEarnings = 50; // Same as in our performance metric
+      
+      // Update the submission with the new metrics and earnings
+      const [updatedSubmission] = await db
+        .update(submissions)
+        .set({
+          views: viewCount,
+          likes: likeCount,
+          earnings: calculatedEarnings
+        })
+        .where(eq(submissions.id, submissionId))
+        .returning();
+      
+      return res.json({
+        message: "Submission updated with latest metrics and earnings",
+        updatedSubmission
+      });
+    } catch (error: any) {
+      console.error("Error updating submission earnings:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
   // Test performance metric creator - DO NOT USE IN PRODUCTION
   app.get("/api/debug/create-test-metric", async (req, res) => {
     try {
@@ -1603,7 +1640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         viewCount: viewCount,
         likeCount: likeCount,
         calculatedEarnings: calculatedEarnings,
-        updatedBy: 1, // Admin user ID
+        updatedBy: 11, // Admin user ID (from our db check endpoint)
       }).returning();
 
       return res.json({
@@ -1640,6 +1677,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(campaigns)
         .where(sql`title LIKE ${'%Dirtyhabit%'} OR title LIKE ${'%Dirty habit%'} OR title LIKE ${'%Dirty Habit%'}`);
       
+      // Find admin user
+      const adminUser = await db
+        .select()
+        .from(users)
+        .where(sql`role = 'admin'`);
+        
       return res.json({
         counts: {
           users: userCount,
@@ -1650,6 +1693,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           users: userSample.map(u => ({ id: u.id, username: u.username, role: u.role })),
           campaigns: campaignSample,
         },
+        allUsers: await db.select({ id: users.id, username: users.username, role: users.role }).from(users),
+        adminUsers: adminUser,
         dirtyHabitCampaigns
       });
     } catch (error: any) {
