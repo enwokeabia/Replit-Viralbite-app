@@ -1416,6 +1416,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Emergency DB inspection endpoint - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/db-check", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { sql } = await import('drizzle-orm');
+      const { db } = await import('./db');
+      const { users, campaigns, submissions } = await import('@shared/schema');
+      
+      // Count all records in the database for each table
+      const userCount = (await db.select({ count: sql`count(*)` }).from(users))[0].count;
+      const campaignCount = (await db.select({ count: sql`count(*)` }).from(campaigns))[0].count;
+      const submissionCount = (await db.select({ count: sql`count(*)` }).from(submissions))[0].count;
+      
+      // Get some sample data
+      const userSample = await db.select().from(users).limit(5);
+      const campaignSample = await db.select().from(campaigns).limit(5);
+      
+      // Search for a campaign with "Dirtyhabit" in the title
+      const dirtyHabitCampaigns = await db
+        .select()
+        .from(campaigns)
+        .where(sql`title LIKE ${'%Dirtyhabit%'} OR title LIKE ${'%Dirty habit%'} OR title LIKE ${'%Dirty Habit%'}`);
+      
+      return res.json({
+        counts: {
+          users: userCount,
+          campaigns: campaignCount,
+          submissions: submissionCount,
+        },
+        samples: {
+          users: userSample.map(u => ({ id: u.id, username: u.username, role: u.role })),
+          campaigns: campaignSample,
+        },
+        dirtyHabitCampaigns
+      });
+    } catch (error) {
+      console.error("Error in db-check endpoint:", error);
+      return res.status(500).json({ error: "Internal server error", message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
