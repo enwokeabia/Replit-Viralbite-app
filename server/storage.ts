@@ -23,23 +23,24 @@ export interface IStorage {
   privateSubmissions: Map<number, PrivateSubmission>;
   performanceMetrics: Map<number, PerformanceMetric>;
   privatePerformanceMetrics: Map<number, PrivatePerformanceMetric>;
-  
+
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
-  
+
   // Campaign methods
   getCampaign(id: number): Promise<Campaign | undefined>;
   getCampaigns(): Promise<Campaign[]>;
   getCampaignsByRestaurantId(restaurantId: number): Promise<Campaign[]>;
   getActiveCampaigns(): Promise<Campaign[]>;
+  getAllCampaigns(): Promise<Campaign[]>; // Added getAllCampaigns method
   createCampaign(campaign: InsertCampaign): Promise<Campaign>;
   updateCampaign(id: number, campaign: Partial<Campaign>): Promise<Campaign | undefined>;
   deleteCampaign(id: number): Promise<boolean>;
-  
+
   // Submission methods
   getSubmission(id: number): Promise<Submission | undefined>;
   getSubmissions(): Promise<Submission[]>;
@@ -48,7 +49,7 @@ export interface IStorage {
   getSubmissionsByRestaurantId(restaurantId: number): Promise<Submission[]>;
   createSubmission(submission: InsertSubmission): Promise<Submission>;
   updateSubmission(id: number, submission: Partial<Submission>): Promise<Submission | undefined>;
-  
+
   // Private Invitation methods
   getPrivateInvitation(id: number): Promise<PrivateInvitation | undefined>;
   getPrivateInvitationByCode(inviteCode: string): Promise<PrivateInvitation | undefined>;
@@ -57,23 +58,23 @@ export interface IStorage {
   createPrivateInvitation(invitation: InsertPrivateInvitation): Promise<PrivateInvitation>;
   updatePrivateInvitation(id: number, invitation: Partial<PrivateInvitation>): Promise<PrivateInvitation | undefined>;
   deletePrivateInvitation(id: number): Promise<boolean>;
-  
+
   // Private Submission methods
   getPrivateSubmission(id: number): Promise<PrivateSubmission | undefined>;
   getPrivateSubmissionsByInvitationId(invitationId: number): Promise<PrivateSubmission[]>;
   createPrivateSubmission(submission: InsertPrivateSubmission): Promise<PrivateSubmission>;
   updatePrivateSubmission(id: number, submission: Partial<PrivateSubmission>): Promise<PrivateSubmission | undefined>;
-  
+
   // Performance Metrics methods
   getPerformanceMetric(id: number): Promise<PerformanceMetric | undefined>;
   getPerformanceMetricsBySubmissionId(submissionId: number): Promise<PerformanceMetric[]>;
   createPerformanceMetric(metric: InsertPerformanceMetric): Promise<PerformanceMetric>;
-  
+
   // Private Performance Metrics methods
   getPrivatePerformanceMetric(id: number): Promise<PrivatePerformanceMetric | undefined>;
   getPrivatePerformanceMetricsBySubmissionId(privateSubmissionId: number): Promise<PrivatePerformanceMetric[]>;
   createPrivatePerformanceMetric(metric: InsertPrivatePerformanceMetric): Promise<PrivatePerformanceMetric>;
-  
+
   // Session store
   sessionStore: session.Store;
 }
@@ -105,7 +106,7 @@ export class MemStorage implements IStorage {
     this.privateSubmissions = new Map();
     this.performanceMetrics = new Map();
     this.privatePerformanceMetrics = new Map();
-    
+
     // Initialize the ID counters with starting values
     this.userIdCounter = 1;
     this.campaignIdCounter = 1;
@@ -114,14 +115,14 @@ export class MemStorage implements IStorage {
     this.privateSubmissionIdCounter = 1;
     this.performanceMetricIdCounter = 1;
     this.privatePerformanceMetricIdCounter = 1;
-    
+
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
-    
+
     // Password is "Password"
     const adminPasswordHash = "ade3e42b3773eabd4c050d7355dfd96e65c89e545a3f040e62d22ce5e86903928cbcf4f4342a12d1c38f87d74d13fd5930940c0c5658e2ed530de62f31e8667d.e16aa36aa6ee2717ced407b074195e04";
-    
+
     // Create admin user for demo/testing purposes
     const adminUser: User = {
       id: this.userIdCounter++,
@@ -134,7 +135,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(adminUser.id, adminUser);
-    
+
     // Create test restaurant user
     const testRestaurantUser: User = {
       id: this.userIdCounter++,
@@ -147,7 +148,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(testRestaurantUser.id, testRestaurantUser);
-    
+
     // Create test influencer user
     const testInfluencerUser: User = {
       id: this.userIdCounter++,
@@ -160,7 +161,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(testInfluencerUser.id, testInfluencerUser);
-    
+
     // Create second restaurant user for multi-restaurant testing
     const testRestaurant2User: User = {
       id: this.userIdCounter++, 
@@ -204,11 +205,11 @@ export class MemStorage implements IStorage {
     this.users.set(id, user);
     return user;
   }
-  
+
   async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
-    
+
     const updatedUser = { ...user, ...userUpdate };
     this.users.set(id, updatedUser);
     return updatedUser;
@@ -230,21 +231,21 @@ export class MemStorage implements IStorage {
         // Convert both values to numbers for reliable comparison
         const campaignRestaurantId = Number(campaign.restaurantId);
         const requestedId = Number(restaurantId);
-        
+
         const matches = campaignRestaurantId === requestedId;
         console.log(`Campaign ID ${campaign.id}, Restaurant ID ${campaignRestaurantId} (${typeof campaign.restaurantId}), Requested ID ${requestedId} (${typeof restaurantId}), Match: ${matches}`);
         return matches;
       });
-    
+
     console.log(`Found ${campaigns.length} campaigns for restaurant ID ${restaurantId}`);
-    
+
     // Additional verification for debugging
     if (campaigns.length > 0) {
       console.log("Restaurant campaigns:", campaigns.map(c => ({id: c.id, title: c.title, restaurantId: c.restaurantId})));
     } else {
       console.log("No campaigns found for this restaurant.");
     }
-    
+
     return campaigns;
   }
 
@@ -256,7 +257,7 @@ export class MemStorage implements IStorage {
         console.log(`Campaign ID ${campaign.id}, Status: ${campaign.status}, Active: ${isActive}`);
         return isActive;
       });
-    
+
     console.log(`Found ${campaigns.length} active campaigns`);
     return campaigns;
   }
@@ -265,14 +266,14 @@ export class MemStorage implements IStorage {
     // Increment the ID counter to ensure we always get a unique ID
     const id = this.campaignIdCounter++;
     const createdAt = new Date();
-    
+
     // Ensure restaurantId is stored as a number
     const restaurantId = Number(insertCampaign.restaurantId);
-    
+
     console.log(`Creating campaign with ID ${id} for restaurant ${restaurantId} (original type: ${typeof insertCampaign.restaurantId})`);
     console.log(`Campaign ID counter is now ${this.campaignIdCounter}`);
     console.log(`Current campaigns in store: ${this.campaigns.size}`);
-    
+
     // Create a campaign with all required fields explicitly assigned
     const campaign: Campaign = {
       id,
@@ -288,28 +289,28 @@ export class MemStorage implements IStorage {
       status: insertCampaign.status,
       createdAt
     };
-    
+
     // Add the campaign to the campaigns map
     this.campaigns.set(id, campaign);
-    
+
     console.log(`After creation, campaigns in store: ${this.campaigns.size}`);
     console.log(`All campaign IDs: ${Array.from(this.campaigns.keys()).join(', ')}`);
-    
+
     // Verify restaurant ID is correctly stored - this is crucial for filtering
     console.log(`Verifying campaign ${id}:`);
     console.log(`- Restaurant ID: ${campaign.restaurantId} (${typeof campaign.restaurantId})`);
-    
+
     // Verify the campaign can be retrieved by restaurant ID
     const restaurantCampaigns = await this.getCampaignsByRestaurantId(restaurantId);
     console.log(`Verification: Restaurant ${restaurantId} has ${restaurantCampaigns.length} campaigns after creation`);
-    
+
     return campaign;
   }
 
   async updateCampaign(id: number, campaignUpdate: Partial<Campaign>): Promise<Campaign | undefined> {
     const campaign = this.campaigns.get(id);
     if (!campaign) return undefined;
-    
+
     const updatedCampaign = { ...campaign, ...campaignUpdate };
     this.campaigns.set(id, updatedCampaign);
     return updatedCampaign;
@@ -342,18 +343,18 @@ export class MemStorage implements IStorage {
     // Use Number conversion for consistent comparison
     const numRestaurantId = Number(restaurantId);
     console.log(`Getting submissions for restaurant ID ${numRestaurantId} (${typeof restaurantId})`);
-    
+
     const restaurantCampaignIds = Array.from(this.campaigns.values())
       .filter(campaign => Number(campaign.restaurantId) === numRestaurantId)
       .map(campaign => campaign.id);
-    
+
     console.log(`Found ${restaurantCampaignIds.length} campaigns for restaurant ID ${numRestaurantId}: ${restaurantCampaignIds.join(', ')}`);
-    
+
     const submissions = Array.from(this.submissions.values())
       .filter(submission => restaurantCampaignIds.includes(Number(submission.campaignId)));
-    
+
     console.log(`Found ${submissions.length} submissions for restaurant ID ${numRestaurantId}`);
-    
+
     return submissions;
   }
 
@@ -376,7 +377,7 @@ export class MemStorage implements IStorage {
   async updateSubmission(id: number, submissionUpdate: Partial<Submission>): Promise<Submission | undefined> {
     const submission = this.submissions.get(id);
     if (!submission) return undefined;
-    
+
     const updatedSubmission = { ...submission, ...submissionUpdate };
     this.submissions.set(id, updatedSubmission);
     return updatedSubmission;
@@ -407,7 +408,7 @@ export class MemStorage implements IStorage {
     const id = this.privateInvitationIdCounter++;
     const createdAt = new Date();
     const inviteCode = crypto.randomUUID();
-    
+
     const invitation: PrivateInvitation = {
       ...insertInvitation,
       id,
@@ -416,7 +417,7 @@ export class MemStorage implements IStorage {
       imageUrl: insertInvitation.imageUrl || null,
       expiresAt: insertInvitation.expiresAt || null
     };
-    
+
     this.privateInvitations.set(id, invitation);
     return invitation;
   }
@@ -424,12 +425,12 @@ export class MemStorage implements IStorage {
   async updatePrivateInvitation(id: number, invitationUpdate: Partial<PrivateInvitation>): Promise<PrivateInvitation | undefined> {
     const invitation = this.privateInvitations.get(id);
     if (!invitation) return undefined;
-    
+
     const updatedInvitation = { ...invitation, ...invitationUpdate };
     this.privateInvitations.set(id, updatedInvitation);
     return updatedInvitation;
   }
-  
+
   async deletePrivateInvitation(id: number): Promise<boolean> {
     return this.privateInvitations.delete(id);
   }
@@ -447,7 +448,7 @@ export class MemStorage implements IStorage {
   async createPrivateSubmission(insertSubmission: InsertPrivateSubmission): Promise<PrivateSubmission> {
     const id = this.privateSubmissionIdCounter++;
     const createdAt = new Date();
-    
+
     const submission: PrivateSubmission = {
       ...insertSubmission,
       id,
@@ -457,7 +458,7 @@ export class MemStorage implements IStorage {
       createdAt,
       notes: insertSubmission.notes || null
     };
-    
+
     this.privateSubmissions.set(id, submission);
     return submission;
   }
@@ -465,7 +466,7 @@ export class MemStorage implements IStorage {
   async updatePrivateSubmission(id: number, submissionUpdate: Partial<PrivateSubmission>): Promise<PrivateSubmission | undefined> {
     const submission = this.privateSubmissions.get(id);
     if (!submission) return undefined;
-    
+
     const updatedSubmission = { ...submission, ...submissionUpdate };
     this.privateSubmissions.set(id, updatedSubmission);
     return updatedSubmission;
@@ -485,15 +486,15 @@ export class MemStorage implements IStorage {
   async createPerformanceMetric(insertMetric: InsertPerformanceMetric): Promise<PerformanceMetric> {
     const id = this.performanceMetricIdCounter++;
     const updatedAt = new Date();
-    
+
     const metric: PerformanceMetric = {
       ...insertMetric,
       id,
       updatedAt
     };
-    
+
     this.performanceMetrics.set(id, metric);
-    
+
     // Update the submission with the latest metrics and earnings
     const submission = await this.getSubmission(insertMetric.submissionId);
     if (submission) {
@@ -503,7 +504,7 @@ export class MemStorage implements IStorage {
         earnings: insertMetric.calculatedEarnings
       });
     }
-    
+
     return metric;
   }
 
@@ -521,15 +522,15 @@ export class MemStorage implements IStorage {
   async createPrivatePerformanceMetric(insertMetric: InsertPrivatePerformanceMetric): Promise<PrivatePerformanceMetric> {
     const id = this.privatePerformanceMetricIdCounter++;
     const updatedAt = new Date();
-    
+
     const metric: PrivatePerformanceMetric = {
       ...insertMetric,
       id,
       updatedAt
     };
-    
+
     this.privatePerformanceMetrics.set(id, metric);
-    
+
     // Update the private submission with the latest metrics and earnings
     const submission = await this.getPrivateSubmission(insertMetric.privateSubmissionId);
     if (submission) {
@@ -539,7 +540,7 @@ export class MemStorage implements IStorage {
         earnings: insertMetric.calculatedEarnings
       });
     }
-    
+
     return metric;
   }
 }
@@ -554,7 +555,7 @@ export class DatabaseStorage implements IStorage {
   privateSubmissions: Map<number, PrivateSubmission> = new Map();
   performanceMetrics: Map<number, PerformanceMetric> = new Map();
   privatePerformanceMetrics: Map<number, PrivatePerformanceMetric> = new Map();
-  
+
   sessionStore: session.Store;
 
   constructor() {
@@ -562,7 +563,7 @@ export class DatabaseStorage implements IStorage {
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // 24h, clear expired entries
     });
-    
+
     // No in-memory data initialization as data is stored in the database
     console.log("Using persistent database storage for all data");
   }
@@ -647,19 +648,19 @@ export class DatabaseStorage implements IStorage {
       // Ensure restaurantId is a number
       const numRestaurantId = Number(restaurantId);
       console.log(`Getting campaigns for restaurant ID ${numRestaurantId} (${typeof restaurantId})`);
-      
+
       const result = await db
         .select()
         .from(campaigns)
         .where(eq(campaigns.restaurantId, numRestaurantId));
-      
+
       console.log(`Found ${result.length} campaigns for restaurant ID ${numRestaurantId}`);
       if (result.length > 0) {
         console.log("Restaurant campaigns:", result.map(c => ({id: c.id, title: c.title, restaurantId: c.restaurantId})));
       } else {
         console.log("No campaigns found for this restaurant.");
       }
-      
+
       return result;
     } catch (error) {
       console.error(`Error retrieving campaigns for restaurant ${restaurantId}:`, error);
@@ -673,7 +674,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(campaigns)
         .where(eq(campaigns.status, "active"));
-      
+
       console.log(`Found ${activeCampaigns.length} active campaigns`);
       return activeCampaigns;
     } catch (error) {
@@ -687,7 +688,7 @@ export class DatabaseStorage implements IStorage {
       const allCampaigns = await db
         .select()
         .from(campaigns);
-      
+
       console.log(`Found ${allCampaigns.length} total campaigns`);
       return allCampaigns;
     } catch (error) {
@@ -700,9 +701,9 @@ export class DatabaseStorage implements IStorage {
     try {
       // Ensure restaurantId is a number
       const numRestaurantId = Number(insertCampaign.restaurantId);
-      
+
       console.log(`Creating campaign for restaurant ${numRestaurantId} (original type: ${typeof insertCampaign.restaurantId})`);
-      
+
       // Create campaign with all data normalized
       const campaignData = {
         ...insertCampaign,
@@ -711,18 +712,18 @@ export class DatabaseStorage implements IStorage {
         maxPayoutPerInfluencer: insertCampaign.maxPayoutPerInfluencer || null,
         maxBudget: insertCampaign.maxBudget || null
       };
-      
+
       const [campaign] = await db
         .insert(campaigns)
         .values(campaignData)
         .returning();
-      
+
       console.log(`Created campaign with ID ${campaign.id} for restaurant ${campaign.restaurantId}`);
-      
+
       // Verify the campaign can be retrieved by restaurant ID
       const restaurantCampaigns = await this.getCampaignsByRestaurantId(numRestaurantId);
       console.log(`Verification: Restaurant ${numRestaurantId} has ${restaurantCampaigns.length} campaigns after creation`);
-      
+
       return campaign;
     } catch (error) {
       console.error("Error creating campaign:", error);
@@ -736,13 +737,13 @@ export class DatabaseStorage implements IStorage {
       if (campaignUpdate.restaurantId) {
         campaignUpdate.restaurantId = Number(campaignUpdate.restaurantId);
       }
-      
+
       const [updatedCampaign] = await db
         .update(campaigns)
         .set(campaignUpdate)
         .where(eq(campaigns.id, id))
         .returning();
-      
+
       return updatedCampaign;
     } catch (error) {
       console.error(`Error updating campaign ${id}:`, error);
@@ -756,7 +757,7 @@ export class DatabaseStorage implements IStorage {
         .delete(campaigns)
         .where(eq(campaigns.id, id))
         .returning();
-      
+
       return result.length > 0;
     } catch (error) {
       console.error(`Error deleting campaign ${id}:`, error);
@@ -815,25 +816,25 @@ export class DatabaseStorage implements IStorage {
       // Use Number conversion for consistent comparison
       const numRestaurantId = Number(restaurantId);
       console.log(`Getting submissions for restaurant ID ${numRestaurantId} (${typeof restaurantId})`);
-      
+
       // First get all campaigns belonging to the restaurant
       const restaurantCampaigns = await this.getCampaignsByRestaurantId(numRestaurantId);
-      
+
       if (restaurantCampaigns.length === 0) {
         console.log(`No campaigns found for restaurant ${numRestaurantId}`);
         return [];
       }
-      
+
       // Get all campaign IDs
       const campaignIds = restaurantCampaigns.map(campaign => campaign.id);
       console.log(`Found ${campaignIds.length} campaigns for restaurant ID ${numRestaurantId}: ${campaignIds.join(', ')}`);
-      
+
       // Get all submissions for those campaigns
       const result = await db
         .select()
         .from(submissions)
         .where(inArray(submissions.campaignId, campaignIds));
-      
+
       console.log(`Found ${result.length} submissions for restaurant ID ${numRestaurantId}`);
       return result;
     } catch (error) {
@@ -847,14 +848,14 @@ export class DatabaseStorage implements IStorage {
       // Ensure IDs are numbers
       const numCampaignId = Number(insertSubmission.campaignId);
       const numInfluencerId = Number(insertSubmission.influencerId);
-      
+
       const submissionData = {
         ...insertSubmission,
         campaignId: numCampaignId,
         influencerId: numInfluencerId,
         notes: insertSubmission.notes || null
       };
-      
+
       const [submission] = await db
         .insert(submissions)
         .values({
@@ -864,7 +865,7 @@ export class DatabaseStorage implements IStorage {
           earnings: 0
         })
         .returning();
-      
+
       return submission;
     } catch (error) {
       console.error("Error creating submission:", error);
@@ -881,13 +882,13 @@ export class DatabaseStorage implements IStorage {
       if (submissionUpdate.influencerId) {
         submissionUpdate.influencerId = Number(submissionUpdate.influencerId);
       }
-      
+
       const [updatedSubmission] = await db
         .update(submissions)
         .set(submissionUpdate)
         .where(eq(submissions.id, id))
         .returning();
-      
+
       return updatedSubmission;
     } catch (error) {
       console.error(`Error updating submission ${id}:`, error);
@@ -897,8 +898,7 @@ export class DatabaseStorage implements IStorage {
 
   // Private Invitation methods
   async getPrivateInvitation(id: number): Promise<PrivateInvitation | undefined> {
-    try {
-      const [invitation] = await db.select().from(privateInvitations).where(eq(privateInvitations.id, id));
+    try {const [invitation] = await db.select().from(privateInvitations).where(eq(privateInvitations.id, id));
       return invitation;
     } catch (error) {
       console.error(`Error retrieving private invitation ${id}:`, error);
@@ -950,19 +950,19 @@ export class DatabaseStorage implements IStorage {
       // Ensure IDs are numbers
       const numRestaurantId = Number(insertInvitation.restaurantId);
       const numInfluencerId = Number(insertInvitation.influencerId);
-      
+
       const invitationData = {
         ...insertInvitation,
         restaurantId: numRestaurantId,
         influencerId: numInfluencerId,
         imageUrl: insertInvitation.imageUrl || null
       };
-      
+
       const [invitation] = await db
         .insert(privateInvitations)
         .values(invitationData)
         .returning();
-      
+
       return invitation;
     } catch (error) {
       console.error("Error creating private invitation:", error);
@@ -979,13 +979,13 @@ export class DatabaseStorage implements IStorage {
       if (invitationUpdate.influencerId) {
         invitationUpdate.influencerId = Number(invitationUpdate.influencerId);
       }
-      
+
       const [updatedInvitation] = await db
         .update(privateInvitations)
         .set(invitationUpdate)
         .where(eq(privateInvitations.id, id))
         .returning();
-      
+
       return updatedInvitation;
     } catch (error) {
       console.error(`Error updating private invitation ${id}:`, error);
@@ -999,7 +999,7 @@ export class DatabaseStorage implements IStorage {
         .delete(privateInvitations)
         .where(eq(privateInvitations.id, id))
         .returning();
-      
+
       return result.length > 0;
     } catch (error) {
       console.error(`Error deleting private invitation ${id}:`, error);
@@ -1035,13 +1035,13 @@ export class DatabaseStorage implements IStorage {
     try {
       // Ensure invitationId is a number
       const numInvitationId = Number(insertSubmission.invitationId);
-      
+
       const submissionData = {
         ...insertSubmission,
         invitationId: numInvitationId,
         notes: insertSubmission.notes || null
       };
-      
+
       const [submission] = await db
         .insert(privateSubmissions)
         .values({
@@ -1051,7 +1051,7 @@ export class DatabaseStorage implements IStorage {
           earnings: 0
         })
         .returning();
-      
+
       return submission;
     } catch (error) {
       console.error("Error creating private submission:", error);
@@ -1065,13 +1065,13 @@ export class DatabaseStorage implements IStorage {
       if (submissionUpdate.invitationId) {
         submissionUpdate.invitationId = Number(submissionUpdate.invitationId);
       }
-      
+
       const [updatedSubmission] = await db
         .update(privateSubmissions)
         .set(submissionUpdate)
         .where(eq(privateSubmissions.id, id))
         .returning();
-      
+
       return updatedSubmission;
     } catch (error) {
       console.error(`Error updating private submission ${id}:`, error);
@@ -1108,18 +1108,18 @@ export class DatabaseStorage implements IStorage {
       // Ensure IDs are numbers
       const numSubmissionId = Number(insertMetric.submissionId);
       const numUpdatedBy = Number(insertMetric.updatedBy);
-      
+
       const metricData = {
         ...insertMetric,
         submissionId: numSubmissionId,
         updatedBy: numUpdatedBy
       };
-      
+
       const [metric] = await db
         .insert(performanceMetrics)
         .values(metricData)
         .returning();
-      
+
       return metric;
     } catch (error) {
       console.error("Error creating performance metric:", error);
@@ -1156,18 +1156,18 @@ export class DatabaseStorage implements IStorage {
       // Ensure IDs are numbers
       const numSubmissionId = Number(insertMetric.privateSubmissionId);
       const numUpdatedBy = Number(insertMetric.updatedBy);
-      
+
       const metricData = {
         ...insertMetric,
         privateSubmissionId: numSubmissionId,
         updatedBy: numUpdatedBy
       };
-      
+
       const [metric] = await db
         .insert(privatePerformanceMetrics)
         .values(metricData)
         .returning();
-      
+
       return metric;
     } catch (error) {
       console.error("Error creating private performance metric:", error);
