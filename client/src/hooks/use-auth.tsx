@@ -33,17 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      // Try token-based auth first as an emergency fallback
       try {
         console.log("Attempting token-based authentication");
         const tokenRes = await apiRequest("POST", "/api/auth/token", credentials);
         const tokenData = await tokenRes.json();
         
-        // Store the auth token in localStorage
+        // Store both the token and user data
         localStorage.setItem("authToken", tokenData.token);
+        localStorage.setItem("userData", JSON.stringify(tokenData.user));
         
-        // Set the auth token for all future requests
-        console.log("Saved auth token to localStorage");
+        console.log("Saved auth data to localStorage");
+        
+        // Immediately set the query data
+        queryClient.setQueryData(["/api/user"], tokenData.user);
         
         return tokenData.user;
       } catch (tokenError) {
