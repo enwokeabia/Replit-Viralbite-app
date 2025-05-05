@@ -51,9 +51,8 @@ export default function BrowseCampaigns() {
   const filteredCampaigns = campaigns
     ? campaigns
         .filter((campaign) => {
-          // Apply search filter
-          if (
-            searchQuery &&
+          // Apply search filter if one exists
+          if (searchQuery &&
             !campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
             !campaign.description.toLowerCase().includes(searchQuery.toLowerCase())
           ) {
