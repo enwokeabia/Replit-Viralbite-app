@@ -1416,6 +1416,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick campaign creator endpoint - DO NOT USE IN PRODUCTION
+  app.get("/api/debug/create-dirtyhabit", async (req, res) => {
+    try {
+      // Import needed dependencies
+      const { db } = await import('./db');
+      const { campaigns } = await import('@shared/schema');
+
+      // Create a Dirty Habit campaign
+      const [campaign] = await db.insert(campaigns).values({
+        restaurantId: 2, // Restaurant user has ID 2
+        title: "Dirty Habit Chef's Special",
+        description: "Promote our new chef's special menu featuring locally-sourced ingredients and innovative cocktails.",
+        imageUrl: "https://images.unsplash.com/photo-1554306297-0c86e837d24b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
+        rewardAmount: 50,
+        rewardViews: 5000,
+        maxPayoutPerInfluencer: 200,
+        maxBudget: 1000,
+        status: "active",
+        createdAt: new Date()
+      }).returning();
+
+      return res.json({
+        message: "Dirty Habit campaign created successfully",
+        campaign
+      });
+    } catch (error: any) {
+      console.error("Error creating Dirty Habit campaign:", error);
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
+    }
+  });
+
   // Emergency DB inspection endpoint - DO NOT USE IN PRODUCTION
   app.get("/api/debug/db-check", async (req, res) => {
     try {
@@ -1451,9 +1482,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         dirtyHabitCampaigns
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in db-check endpoint:", error);
-      return res.status(500).json({ error: "Internal server error", message: error.message });
+      return res.status(500).json({ error: "Internal server error", message: error?.message });
     }
   });
 
