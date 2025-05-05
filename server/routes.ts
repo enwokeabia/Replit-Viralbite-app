@@ -2,6 +2,8 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { scrypt, randomBytes } from 'crypto';
+import { promisify } from 'util';
 import { 
   insertCampaignSchema, 
   insertSubmissionSchema, 
@@ -19,6 +21,14 @@ import {
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+
+// Helper function for password hashing
+const scryptAsync = promisify(scrypt);
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 // Map to store auth tokens for emergency authentication
 const authTokens = new Map<string, number>();
@@ -1439,10 +1449,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: "restaurant2",
         email: "restaurant2@example.com",
         password: await hashPassword("Password"),
+        name: "Thai Fusion",
         role: "restaurant",
-        profileImageUrl: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
-        bio: "Innovative Thai fusion restaurant with a modern twist on traditional recipes.",
-        createdAt: new Date()
+        profilePicture: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3"
       }).returning();
 
       return res.json({
@@ -1483,10 +1492,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: "Janet",
         email: "janet@example.com",
         password: await hashPassword("Password"),
+        name: "Janet Smith",
         role: "influencer",
-        profileImageUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3",
-        bio: "Lifestyle and food influencer passionate about discovering new culinary experiences!",
-        createdAt: new Date()
+        profilePicture: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3"
       }).returning();
 
       return res.json({
