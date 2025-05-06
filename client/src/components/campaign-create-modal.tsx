@@ -96,7 +96,7 @@ export function CampaignCreateModal({
       rewardViews: 1000,
       maxPayoutPerInfluencer: 100,
       maxBudget: undefined,
-      status: "active",
+      // status removed from schema
     };
 
   const form = useForm<FormValues>({
@@ -478,32 +478,7 @@ export function CampaignCreateModal({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Campaign Status</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="active" />
-                        <Label htmlFor="active">Active</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="draft" id="draft" />
-                        <Label htmlFor="draft">Draft</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Status field removed from schema */}
 
             <DialogFooter className="pt-4">
               <Button
