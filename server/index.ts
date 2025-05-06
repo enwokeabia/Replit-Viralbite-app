@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { runInitialization } from "./init-users";
 
 const app = express();
 // Increase payload limit to 10MB for handling image uploads
@@ -38,6 +39,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize required user data first
+  console.log("Initializing user data...");
+  await runInitialization();
+  console.log("User initialization complete");
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
