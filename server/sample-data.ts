@@ -96,8 +96,7 @@ async function createSampleData() {
       rewardAmount: 60,
       rewardViews: 15000,
       maxPayoutPerInfluencer: 240,
-      maxBudget: 2400,
-      status: "active"
+      maxBudget: 2400
     });
     
     // Create a test submission

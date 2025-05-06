@@ -46,11 +46,8 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
   // Check if the influencer has already submitted to this campaign
   const userSubmission = submissions?.find(sub => sub.campaignId === campaign.id);
 
-  const statusColor = {
-    active: "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200",
-    draft: "bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-800 border-yellow-200",
-    ended: "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border-gray-200",
-  };
+  // All campaigns are considered active now that the status field is removed
+  const statusStyle = "bg-gradient-to-r from-green-100 to-green-50 text-green-800 border-green-200";
 
   const handleDelete = async () => {
     try {
@@ -93,11 +90,9 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
           <div className="absolute top-2 right-2">
             <Badge
               variant="outline"
-              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                statusColor[campaign.status as keyof typeof statusColor]
-              }`}
+              className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyle}`}
             >
-              {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+              Active
             </Badge>
           </div>
         </div>
@@ -210,7 +205,6 @@ export function CampaignCard({ campaign, viewType, onEdit }: CampaignCardProps) 
                 className="bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-900 hover:to-purple-700 text-white shadow-sm"
                 size="sm"
                 onClick={() => setShowApplyModal(true)}
-                disabled={campaign.status !== "active"}
               >
                 Apply Now
               </Button>
