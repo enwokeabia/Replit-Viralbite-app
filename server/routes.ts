@@ -38,10 +38,10 @@ global.authTokens = authTokens;
 // Add standard test tokens for quick access - now using database IDs
 console.log("Setting up test authentication tokens...");
 // These tokens will be made available for emergency login bypass
-authTokens.set('test-token-123456', 1); // Admin
-authTokens.set('test-restaurant-token', 2); // Restaurant user (johnjones)
-authTokens.set('test-restaurant2-token', 4); // Second restaurant user (restaurant2)
-authTokens.set('test-influencer-token', 3); // Influencer user
+authTokens.set('test-token-123456', 11); // Admin (ID: 11)
+authTokens.set('test-restaurant-token', 14); // Restaurant user (johnjones ID: 14)
+authTokens.set('test-restaurant2-token', 12); // Second restaurant user (restaurant2 ID: 12)
+authTokens.set('test-influencer-token', 13); // Influencer user (Janet ID: 13)
 console.log("Test tokens configured with database user IDs")
 
 // Declare global namespace to avoid TypeScript errors
@@ -88,16 +88,39 @@ function requireAuth(req: Request, res: Response, next: Function) {
 
   // Also check for the test token
   if (authToken === "test-token-123456") {
-    console.log("TEST TOKEN DETECTED");
-    const userId = 1; // Admin user
-    console.log("✓ AUTH SUCCESS via test token - User ID:", userId);
+    console.log("TEST TOKEN DETECTED for Admin");
+    const userId = 11; // Admin user (ID: 11)
+    console.log("✓ AUTH SUCCESS via test token - Looking up User ID:", userId);
+    
+    // Debug section to list all users in the database
+    console.log("DEBUG: All user IDs in the system:");
+    storage.users.forEach((user, id) => {
+      console.log(`- User ID: ${id}, Username: ${user.username}, Role: ${user.role}`);
+    });
 
     storage.getUser(userId).then(user => {
       if (user) {
+        console.log("✓ Found admin user:", user.id, user.username, user.role);
         req.user = user as any;
         next();
       } else {
-        res.status(401).send("Invalid token");
+        console.error("⛔ Admin user not found with ID:", userId);
+        console.log("DEBUG: Trying to find user by username instead");
+        storage.getUserByUsername("Admin").then(adminUser => {
+          if (adminUser) {
+            console.log("✓ Found admin by username:", adminUser.id, adminUser.username);
+            req.user = adminUser as any;
+            
+            // Update the token map with the correct ID for future requests
+            authTokens.set('test-token-123456', adminUser.id);
+            console.log("✓ Updated token map with correct admin ID:", adminUser.id);
+            
+            next();
+          } else {
+            console.error("⛔ Admin user not found by username either");
+            res.status(401).send("Invalid token - Admin user not found");
+          }
+        });
       }
     }).catch(err => {
       console.error("Token auth error:", err);
@@ -144,7 +167,7 @@ function requireAuth(req: Request, res: Response, next: Function) {
 
     // Try to auto-login as Admin for demonstration purposes
     if (req.query.auto === "admin") {
-      storage.getUser(1).then(user => {
+      storage.getUser(11).then(user => {  // Admin user ID: 11
         if (user) {
           console.log("🔴 AUTO-LOGIN as ADMIN:", user.id, user.username);
           req.user = user as any;
@@ -189,15 +212,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const role = req.query.role as string || "admin"; // Default to admin
 
-      let userId = 1; // Default admin
+      let userId = 11; // Default admin (ID: 11)
       let testToken = "test-token-123456"; // Default admin test token
 
       if (role === "restaurant") {
-        userId = 2;
+        userId = 14; // Restaurant user (johnjones ID: 14)
         testToken = "test-restaurant-token";
       } else if (role === "influencer") {
-        userId = 3;
+        userId = 13; // Influencer user (Janet ID: 13)
         testToken = "test-influencer-token";
+      } else if (role === "restaurant2") {
+        userId = 12; // Second restaurant user (restaurant2 ID: 12)
+        testToken = "test-restaurant2-token";
       }
 
       const user = await storage.getUser(userId);
