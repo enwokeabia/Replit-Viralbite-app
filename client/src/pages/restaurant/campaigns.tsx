@@ -19,7 +19,6 @@ import { Loader2, Plus, Search } from "lucide-react";
 
 export default function Campaigns() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [campaignToEdit, setCampaignToEdit] = useState<Campaign | undefined>(undefined);
@@ -53,11 +52,6 @@ export default function Campaigns() {
             !campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
             !campaign.description.toLowerCase().includes(searchQuery.toLowerCase())
           ) {
-            return false;
-          }
-          
-          // Apply status filter
-          if (statusFilter !== "all" && campaign.status !== statusFilter) {
             return false;
           }
           
@@ -110,22 +104,7 @@ export default function Campaigns() {
                   />
                 </div>
               </div>
-              <div className="w-full md:w-40">
-                <Select
-                  value={statusFilter}
-                  onValueChange={setStatusFilter}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="ended">Ended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
               <div className="w-full md:w-40">
                 <Select
                   value={sortBy}
