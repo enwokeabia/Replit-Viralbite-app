@@ -39,7 +39,7 @@ export default function Analytics() {
         return {
           id: campaign.id,
           title: campaign.title,
-          status: campaign.status,
+          status: "active", // All campaigns are now considered active
           submissions: campaignSubmissions.length,
           views: totalViews,
           earnings: totalEarnings,

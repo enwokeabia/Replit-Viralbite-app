@@ -190,7 +190,7 @@ export default function BrowseCampaigns() {
               <Megaphone className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium text-slate-800 mb-2">No campaigns found</h3>
               <p className="text-muted-foreground mb-4">
-                {campaigns?.length > 0
+                {campaigns && campaigns.length > 0
                   ? "Try adjusting your filters or search query"
                   : "There are no campaigns available at the moment"}
               </p>

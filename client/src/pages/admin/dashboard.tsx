@@ -230,13 +230,9 @@ export default function AdminDashboard() {
                             <TableCell>{campaign.restaurantId}</TableCell>
                             <TableCell>
                               <Badge
-                                className={`
-                                  ${campaign.status === 'active' ? 'bg-green-100 text-green-800' : ''}
-                                  ${campaign.status === 'draft' ? 'bg-amber-100 text-amber-800' : ''}
-                                  ${campaign.status === 'ended' ? 'bg-slate-100 text-slate-800' : ''}
-                                `}
+                                className="bg-green-100 text-green-800"
                               >
-                                {campaign.status}
+                                Active
                               </Badge>
                             </TableCell>
                             <TableCell>${campaign.rewardAmount} per {campaign.rewardViews} views</TableCell>
