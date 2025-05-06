@@ -555,21 +555,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const user = req.user as User;
     console.log("User creating campaign:", user.username, "with role:", user.role);
 
-    if (user.role !== "restaurant") {
+    // Allow both restaurant users and admins to create campaigns
+    if (user.role !== "restaurant" && user.role !== "admin") {
       console.warn(`User ${user.username} with role ${user.role} attempted to create a campaign`);
       return res.status(403).json({
         error: "Forbidden",
-        message: "Only restaurant users can create campaigns"
+        message: "Only restaurant users or admins can create campaigns"
       });
+    }
+    
+    // For admin users creating campaigns, we need to manually specify a restaurant ID
+    if (user.role === "admin" && !req.body.restaurantId) {
+      console.log("Admin creating campaign, defaulting to restaurant ID 10 (Dirtyhabit)");
+      req.body.restaurantId = 10; // Default to Dirtyhabit restaurant for admin users
     }
 
     try {
       console.log("Received campaign creation request:", req.body);
 
-      // Ensure restaurantId is explicitly the user's ID as a number
+      // For restaurant users, use their own ID as restaurantId
+      // For admin users, use the restaurantId specified in the request or the default (from above)
       const campaignDataWithRestaurantId = {
         ...req.body,
-        restaurantId: Number(user.id) // Force conversion to number
+        restaurantId: user.role === "restaurant" ? Number(user.id) : Number(req.body.restaurantId)
       };
 
       console.log("Validating campaign data:", campaignDataWithRestaurantId);
@@ -581,14 +589,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const campaign = await storage.createCampaign(campaignData);
         console.log("Campaign created successfully:", campaign);
 
-        // Double-verify that the created campaign has the correct restaurant ID
-        if (Number(campaign.restaurantId) !== Number(user.id)) {
+        // Double-verify that the created campaign has the correct restaurant ID (only for restaurant users)
+        if (user.role === "restaurant" && Number(campaign.restaurantId) !== Number(user.id)) {
           console.error(`ERROR: Created campaign has restaurant ID ${campaign.restaurantId} (${typeof campaign.restaurantId}) but user ID is ${user.id} (${typeof user.id})`);
         }
+        
+        // For admin users, just log the restaurant association
+        if (user.role === "admin") {
+          console.log(`Admin created a campaign for restaurant ID ${campaign.restaurantId}`);
+        }
 
-        // Show all campaigns for this restaurant after creation
-        const restaurantCampaigns = await storage.getCampaignsByRestaurantId(user.id);
-        console.log(`After creation, restaurant ${user.id} has ${restaurantCampaigns.length} campaigns: ${restaurantCampaigns.map(c => c.id).join(', ')}`);
+        // Show campaigns after creation
+        if (user.role === "restaurant") {
+          // For restaurant users, get their own campaigns
+          const restaurantCampaigns = await storage.getCampaignsByRestaurantId(user.id);
+          console.log(`After creation, restaurant ${user.id} has ${restaurantCampaigns.length} campaigns: ${restaurantCampaigns.map(c => c.id).join(', ')}`);
+        } else if (user.role === "admin") {
+          // For admin users, get campaigns for the restaurant we just created for
+          const restaurantCampaigns = await storage.getCampaignsByRestaurantId(campaign.restaurantId);
+          console.log(`After admin creation, restaurant ${campaign.restaurantId} has ${restaurantCampaigns.length} campaigns: ${restaurantCampaigns.map(c => c.id).join(', ')}`);
+        }
 
         res.status(201).json(campaign);
       } catch (validationError) {
