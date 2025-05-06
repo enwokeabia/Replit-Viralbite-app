@@ -68,10 +68,7 @@ function Router() {
 
 function AuthInitializer() {
   useEffect(() => {
-    // Clear all existing tokens from localStorage on app initialization
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("testToken");
-    console.log("Auth tokens cleared on startup");
+    // Don't clear tokens on startup - allow persistent login
     
     // Check if we're on the auth or emergency login page
     const isAuthPage = window.location.pathname.includes('/auth');
@@ -79,7 +76,10 @@ function AuthInitializer() {
     
     // If we're not on auth pages, log that we're on a protected page
     if (!isAuthPage && !isEmergencyPage) {
-      console.log("Attempting token-based authentication");
+      const authToken = localStorage.getItem("authToken");
+      const testToken = localStorage.getItem("testToken");
+      console.log("Existing tokens:", authToken ? "Auth token exists" : "No auth token", 
+                                   testToken ? "Test token exists" : "No test token");
     } else {
       console.log("On auth page, not auto-initializing token");
     }
