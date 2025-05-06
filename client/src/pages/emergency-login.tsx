@@ -1,153 +1,164 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useLocation } from "wouter";
 
-// Super simple emergency login page with minimal dependencies
-const EmergencyLogin = () => {
-  const [message, setMessage] = useState<string>('');
-  const [, navigate] = useLocation();
-
-  const loginAs = async (role: string) => {
+export default function EmergencyLogin() {
+  const { toast } = useToast();
+  const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+  
+  // Local state for tokens
+  const [testToken, setTestToken] = useState("");
+  const [role, setRole] = useState("admin");
+  const [emergency, setEmergency] = useState(true);
+  const [message, setMessage] = useState("");
+  
+  useEffect(() => {
+    // If user is already logged in, redirect to homepage
+    if (user) {
+      setLocation("/");
+    }
+    
+    // Clear existing tokens from localStorage
+    localStorage.removeItem("auth_token");
+    
+    // Set default admin token
+    console.log("Set default admin token");
+    setTestToken("test-token-123456");
+  }, [user, setLocation]);
+  
+  const handleLogin = async () => {
     try {
-      setMessage(`Attempting login as ${role}...`);
-      
-      // Clear any existing tokens
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('testToken');
-      
-      // Set the token directly based on role
-      const tokens: Record<string, string> = {
-        admin: 'test-token-123456',
-        restaurant: 'test-restaurant-token',
-        restaurant2: 'test-restaurant2-token',
-        influencer: 'test-influencer-token'
-      };
-      
-      const token = tokens[role];
-      if (!token) {
-        setMessage(`Invalid role: ${role}`);
-        return;
-      }
-      
-      // Store the token in localStorage
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('testToken', token);
-      
-      // Try to get user data
-      const response = await fetch('/api/user', {
-        headers: { 'x-auth-token': token }
-      });
-      
-      if (response.ok) {
-        const user = await response.json();
-        setMessage(`Login successful! Logged in as ${user.name} (${user.role})`);
+      if (emergency) {
+        // Use the emergency token mechanism
+        // Add the token to localStorage
+        localStorage.setItem("auth_token", testToken);
         
-        // Add a delay to show the success message before redirecting
-        setTimeout(() => {
-          navigate('/');
-        }, 1500);
+        // Force a page reload to ensure the token is picked up by auth hooks
+        window.location.href = "/";
       } else {
-        setMessage(`Error: ${response.status} ${response.statusText}`);
+        // Use the emergency login endpoint
+        const response = await fetch(`/api/emergency-login?role=${role}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.token) {
+          // Store the token
+          localStorage.setItem("auth_token", data.token);
+          setMessage(`Success! Using token: ${data.token} for user ${data.user.username}`);
+          
+          // Force a page reload to ensure the token is picked up by auth hooks
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 2000);
+        }
       }
     } catch (error) {
-      setMessage(`Error: ${(error as Error).message}`);
+      console.error("Emergency login error:", error);
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
     }
   };
   
+  // Cleanup tokens on unmount
+  useEffect(() => {
+    console.log("Auth tokens cleared on auth page load");
+    return () => {
+      // Cleanup function, called when the component unmounts
+      if (!emergency) {
+        console.log("Auth tokens cleared");
+        localStorage.removeItem("auth_token");
+      }
+    };
+  }, [emergency]);
+  
   return (
-    <div style={{ 
-      maxWidth: '600px', 
-      margin: '40px auto', 
-      padding: '20px', 
-      background: 'white', 
-      borderRadius: '8px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1 style={{ textAlign: 'center', color: '#663399' }}>ViralBite Emergency Login</h1>
-      <p style={{ textAlign: 'center', marginBottom: '20px', color: '#666' }}>
-        Use this page to log in when the main login page isn't working.
-      </p>
-      
-      {message && (
-        <div style={{ 
-          padding: '10px', 
-          marginBottom: '20px', 
-          background: message.includes('Error') ? '#ffebee' : '#e8f5e9', 
-          border: message.includes('Error') ? '1px solid #ffcdd2' : '1px solid #c8e6c9',
-          borderRadius: '4px',
-          color: message.includes('Error') ? '#c62828' : '#2e7d32'
-        }}>
-          {message}
-        </div>
-      )}
-      
-      <div style={{ display: 'grid', gridGap: '10px' }}>
-        <button 
-          onClick={() => loginAs('admin')} 
-          style={{ 
-            padding: '10px', 
-            background: '#673ab7', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Login as Admin
-        </button>
-        
-        <button 
-          onClick={() => loginAs('restaurant')} 
-          style={{ 
-            padding: '10px', 
-            background: '#8e24aa', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Login as Restaurant (johnjones)
-        </button>
-        
-        <button 
-          onClick={() => loginAs('restaurant2')} 
-          style={{ 
-            padding: '10px', 
-            background: '#5e35b1', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Login as Restaurant2
-        </button>
-        
-        <button 
-          onClick={() => loginAs('influencer')} 
-          style={{ 
-            padding: '10px', 
-            background: '#d81b60', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          Login as Influencer (Janet)
-        </button>
-      </div>
-      
-      <p style={{ textAlign: 'center', marginTop: '20px', color: '#666', fontSize: '14px' }}>
-        This is a simple emergency login page that bypasses the normal login process.
-      </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-800 to-purple-900 p-4">
+      <Card className="w-full max-w-md mx-auto shadow-xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Emergency Login</CardTitle>
+          <CardDescription>
+            Use this page to bypass normal authentication for testing.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="role">Select Role</Label>
+              <Select 
+                defaultValue={role} 
+                onValueChange={setRole}
+                disabled={emergency}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="restaurant">Restaurant</SelectItem>
+                  <SelectItem value="influencer">Influencer</SelectItem>
+                  <SelectItem value="restaurant2">Restaurant 2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="testToken">Auth Token</Label>
+                <span className="text-xs text-gray-500">
+                  <button 
+                    onClick={() => setEmergency(!emergency)}
+                    className="underline text-blue-500"
+                  >
+                    {emergency ? "Use API endpoint" : "Use direct token"}
+                  </button>
+                </span>
+              </div>
+              <Input
+                id="testToken"
+                value={testToken}
+                onChange={(e) => setTestToken(e.target.value)}
+                disabled={!emergency}
+                className="w-full"
+              />
+              <div className="text-xs text-gray-600">
+                {emergency 
+                  ? "This token will be used as auth_token in localStorage" 
+                  : "Token will be fetched from the emergency login endpoint"
+                }
+              </div>
+            </div>
+            
+            {message && (
+              <div className="rounded-md bg-green-50 p-4 text-sm text-green-800">
+                {message}
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={handleLogin}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900"
+            disabled={isLoading || (emergency && !testToken)}
+          >
+            {isLoading ? "Loading..." : "Emergency Login"}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
-};
-
-export default EmergencyLogin;
+}

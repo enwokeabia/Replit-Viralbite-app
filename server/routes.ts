@@ -377,8 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rewardAmount: 25,
           rewardViews: 5000,
           maxPayoutPerInfluencer: 100,
-          maxBudget: 500,
-          status: "active"
+          maxBudget: 500
         });
 
         const campaign2 = await storage.createCampaign({
@@ -389,8 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rewardAmount: 50,
           rewardViews: 10000,
           maxPayoutPerInfluencer: 200,
-          maxBudget: 1000,
-          status: "active"
+          maxBudget: 1000
         });
 
         console.log(`Created test campaigns with IDs ${campaign1.id} and ${campaign2.id}`);

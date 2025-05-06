@@ -571,8 +571,40 @@ export class DatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
     try {
+      console.log(`DEBUG: Looking up user with ID: ${id}`);
+      
+      // First try looking up directly by ID
       const [user] = await db.select().from(users).where(eq(users.id, id));
-      return user;
+      
+      if (user) {
+        console.log(`DEBUG: Found user by ID ${id}: ${user.username} (${user.role})`);
+        return user;
+      }
+      
+      console.log(`DEBUG: User with ID ${id} not found in direct lookup`);
+      
+      // If admin user is being requested by ID 11, let's try to find by username as a fallback
+      if (id === 11) {
+        console.log(`DEBUG: Attempting fallback lookup for admin by username`);
+        const [adminUser] = await db.select().from(users).where(eq(users.username, "Admin"));
+        
+        if (adminUser) {
+          console.log(`DEBUG: Found admin by username: ${adminUser.id} (${adminUser.username})`);
+          return adminUser;
+        }
+        
+        console.log(`DEBUG: Admin not found by username either`);
+      }
+      
+      // Log all users as a last resort for debugging
+      const allUsers = await db.select().from(users);
+      console.log(`DEBUG: Total users in database: ${allUsers.length}`);
+      
+      allUsers.forEach(u => {
+        console.log(`DEBUG: Database user: ID=${u.id}, Username=${u.username}, Role=${u.role}`);
+      });
+      
+      return undefined;
     } catch (error) {
       console.error("Error retrieving user:", error);
       return undefined;
