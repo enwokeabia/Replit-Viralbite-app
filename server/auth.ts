@@ -223,7 +223,7 @@ export function setupAuth(app: Express) {
   // Dummy authenticated test endpoint - allows skip of authentication with a special header
   app.get("/api/force-auth", (req, res) => {
     if (req.headers['x-viralbite-auth-bypass'] === 'true') {
-      req.login({id: 1, username: 'emergency-bypass'} as any, (err) => {
+      req.login({id: 11, username: 'emergency-bypass'} as any, (err) => {
         if (err) {
           console.error("Emergency auth bypass error:", err);
           return res.status(500).send("Error forcing authentication");
@@ -265,7 +265,7 @@ export function setupAuth(app: Express) {
       console.log("GET /api/user - Found special test token for Admin");
       
       // Fetch the admin user by ID
-      storage.getUser(1).then(user => {
+      storage.getUser(11).then(user => {
         if (user) {
           console.log("GET /api/user - Test token user found:", user.id, user.username);
           const safeUser = createSafeUserObject(user);
