@@ -34,7 +34,6 @@ export const campaigns = pgTable("campaigns", {
   rewardViews: integer("reward_views").notNull(),
   maxPayoutPerInfluencer: doublePrecision("max_payout_per_influencer"),
   maxBudget: doublePrecision("max_budget"),
-  status: text("status", { enum: ["draft", "active", "ended"] }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -49,7 +48,6 @@ export const insertCampaignSchema = z.object({
   rewardViews: z.coerce.number().min(100, "Views must be at least 100"),
   maxPayoutPerInfluencer: z.coerce.number().min(1, "Max payout must be at least $1").optional(),
   maxBudget: z.coerce.number().min(1, "Budget must be at least $1").optional(),
-  status: z.enum(["draft", "active", "ended"]),
 });
 
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;

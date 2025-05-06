@@ -489,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Influencer users see only active campaigns
         console.log(`Fetching active campaigns for influencer user ${user.id} (${user.username})`);
 
-        const campaigns = await storage.getActiveCampaigns();
+        const campaigns = await storage.getAllCampaigns();
         console.log(`Found ${campaigns.length} active campaigns`);
         console.log(`Campaign IDs: ${campaigns.map(c => c.id).join(', ')}`);
 
