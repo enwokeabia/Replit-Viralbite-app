@@ -81,7 +81,7 @@ export function CampaignCreateModal({
       imageUrl: initialData.imageUrl,
       rewardAmount: initialData.rewardAmount,
       rewardViews: initialData.rewardViews,
-      status: initialData.status,
+      // status removed from schema
       // Convert nulls to empty string or undefined
       location: initialData.location || "",
       maxPayoutPerInfluencer: initialData.maxPayoutPerInfluencer || undefined,

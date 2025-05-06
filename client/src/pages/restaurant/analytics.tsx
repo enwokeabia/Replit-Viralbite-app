@@ -144,7 +144,11 @@ export default function Analytics() {
                           campaignPerformance.map(campaign => (
                             <tr key={campaign.id} className="border-b">
                               <td className="text-sm p-2 pl-0">{campaign.title}</td>
-                              <td className="text-sm p-2 capitalize">{campaign.status}</td>
+                              <td className="text-sm p-2 capitalize">
+                                <Badge className="bg-green-100 text-green-800">
+                                  Active
+                                </Badge>
+                              </td>
                               <td className="text-sm text-right p-2">{campaign.submissions}</td>
                               <td className="text-sm text-right p-2">{campaign.views.toLocaleString()}</td>
                               <td className="text-sm text-right p-2">{Math.round(campaign.viewsPerSubmission).toLocaleString()}</td>
