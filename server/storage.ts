@@ -704,11 +704,15 @@ export class DatabaseStorage implements IStorage {
 
       console.log(`Creating campaign for restaurant ${numRestaurantId} (original type: ${typeof insertCampaign.restaurantId})`);
 
-      // Create campaign with all data normalized
+      // Create campaign with all data normalized (status field removed)
       const campaignData = {
-        ...insertCampaign,
         restaurantId: numRestaurantId,
+        title: insertCampaign.title,
+        description: insertCampaign.description,
         location: insertCampaign.location || null,
+        imageUrl: insertCampaign.imageUrl,
+        rewardAmount: insertCampaign.rewardAmount,
+        rewardViews: insertCampaign.rewardViews,
         maxPayoutPerInfluencer: insertCampaign.maxPayoutPerInfluencer || null,
         maxBudget: insertCampaign.maxBudget || null
       };

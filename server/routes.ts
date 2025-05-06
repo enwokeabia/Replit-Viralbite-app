@@ -418,8 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rewardAmount: 80,
         rewardViews: 20000,
         maxPayoutPerInfluencer: 250,
-        maxBudget: 2000,
-        status: "active"
+        maxBudget: 2000
       });
 
       console.log(`Created test campaign with ID ${campaign.id} for restaurant2`);
@@ -517,11 +516,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("Forbidden: You can only view your own campaigns");
       }
 
-      // Influencer users can only view active campaigns
-      if (user.role === "influencer" && campaign.status !== "active") {
-        console.log(`Influencer user ${user.id} attempted to access inactive campaign ${campaignId}`);
-        return res.status(403).send("Forbidden: You can only view active campaigns");
-      }
+      // With status field removed, all campaigns are accessible to influencers
+      // No filtering needed
 
       res.json(campaign);
     } catch (error) {
@@ -696,15 +692,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Campaign not found");
       }
 
-      if (campaign.status !== "active") {
-        return res.status(400).send("Cannot submit to inactive campaigns");
-      }
+      // Status check removed as we no longer have campaign status
 
       const submissionData = insertSubmissionSchema.parse({
         ...req.body,
         campaignId,
-        influencerId: user.id,
-        status: "pending"
+        influencerId: user.id
       });
 
       const submission = await storage.createSubmission(submissionData);
@@ -1069,7 +1062,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           privateSubmissions.push(...subs);
         }
 
-        const activeCampaigns = campaigns.filter(c => c.status === "active").length;
+        // All campaigns are considered active with the status field removed
+        const activeCampaigns = campaigns.length;
         const totalSubmissions = submissions.length + privateSubmissions.length;
         const approvedSubmissions = 
           submissions.filter(s => s.status === "approved").length + 
