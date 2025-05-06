@@ -70,8 +70,7 @@ async function createSampleData() {
       rewardAmount: 50,
       rewardViews: 10000,
       maxPayoutPerInfluencer: 300,
-      maxBudget: 3000,
-      status: "active"
+      maxBudget: 3000
     });
     
     const campaign2 = await storage.createCampaign({
@@ -83,8 +82,7 @@ async function createSampleData() {
       rewardAmount: 40,
       rewardViews: 5000,
       maxPayoutPerInfluencer: 200,
-      maxBudget: 2000,
-      status: "active"
+      maxBudget: 2000
     });
     
     // Create sample campaign for Restaurant 2
