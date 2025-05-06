@@ -250,15 +250,16 @@ export class MemStorage implements IStorage {
   }
 
   async getActiveCampaigns(): Promise<Campaign[]> {
-    // Get all campaigns that are active
-    const campaigns = Array.from(this.campaigns.values())
-      .filter((campaign) => {
-        const isActive = campaign.status === "active";
-        console.log(`Campaign ID ${campaign.id}, Status: ${campaign.status}, Active: ${isActive}`);
-        return isActive;
-      });
-
-    console.log(`Found ${campaigns.length} active campaigns`);
+    // Return all campaigns - no status filtering
+    const campaigns = Array.from(this.campaigns.values());
+    console.log(`Found ${campaigns.length} active campaigns (all campaigns are now considered active)`);
+    return campaigns;
+  }
+  
+  async getAllCampaigns(): Promise<Campaign[]> {
+    // Return all campaigns
+    const campaigns = Array.from(this.campaigns.values());
+    console.log(`Found ${campaigns.length} total campaigns`);
     return campaigns;
   }
 
@@ -286,7 +287,6 @@ export class MemStorage implements IStorage {
       rewardViews: insertCampaign.rewardViews,
       maxPayoutPerInfluencer: insertCampaign.maxPayoutPerInfluencer || null,
       maxBudget: insertCampaign.maxBudget || null,
-      status: insertCampaign.status,
       createdAt
     };
 
@@ -670,13 +670,13 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveCampaigns(): Promise<Campaign[]> {
     try {
-      const activeCampaigns = await db
+      // Return all campaigns - no status filtering
+      const allCampaigns = await db
         .select()
-        .from(campaigns)
-        .where(eq(campaigns.status, "active"));
+        .from(campaigns);
 
-      console.log(`Found ${activeCampaigns.length} active campaigns`);
-      return activeCampaigns;
+      console.log(`Found ${allCampaigns.length} active campaigns (all campaigns are now considered active)`);
+      return allCampaigns;
     } catch (error) {
       console.error("Error retrieving active campaigns:", error);
       return [];
