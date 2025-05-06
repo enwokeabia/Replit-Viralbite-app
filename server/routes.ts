@@ -848,8 +848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const invitationData = insertPrivateInvitationSchema.parse({
         ...req.body,
-        restaurantId: user.id,
-        status: "pending"
+        restaurantId: user.id
       });
 
       const invitation = await storage.createPrivateInvitation(invitationData);
@@ -925,8 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const submissionData = insertPrivateSubmissionSchema.parse({
         ...req.body,
-        invitationId,
-        status: "pending"
+        invitationId
       });
 
       const submission = await storage.createPrivateSubmission(submissionData);
